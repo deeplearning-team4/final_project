@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>유형별 검출 · 불량예측 모니터링</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="monitor.css">
+<style>
+.cm td{text-align:center!important;min-width:52px;border-radius:0}
+.cm th{text-align:center!important}
+.cm th:first-child{text-align:left!important}
+.callouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.callouts{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-page="types">
+<div class="frame">
+  <aside class="side"></aside>
+
+  <main class="work">
+    <div class="top"><div class="crumb"><a href="dashboard.html">대시보드</a> › 유형별 검출</div><h1>유형별 검출</h1>
+      <span class="meta">KNN · 5-fold OOF (seed 7) · report_numbers.py</span></div>
+
+    <div class="callouts">
+      <div class="callout"><div class="k">가장 잘 맞힘</div><div class="n">얼룩</div><div class="p">69%</div></div>
+      <div class="callout w"><div class="k">가장 약함</div><div class="n">기타</div><div class="p">13%</div></div>
+      <div class="callout w"><div class="k">놓친 불량 582건의 판정</div><div class="n">전부 정상으로 판정</div><div class="p">582 / 582</div></div>
+    </div>
+
+    <section class="card">
+      <div class="ch"><div><h2>유형별 상세</h2><div class="sub">실제 불량 1,182건 기준 · 정답률 = 유형 맞힘 / 실제 · 정밀도 = 유형 맞힘 / 그 유형 경보</div></div></div>
+      <div class="tw"><table class="t" id="tt"></table></div>
+      <div class="legend"><span><i style="background:var(--green)"></i>양호 50% 이상</span><span><i style="background:var(--amber)"></i>주의 30~50%</span><span><i style="background:var(--red)"></i>취약 30% 미만</span><span>섞어서 나눈 검증이라 처음 보는 시기에서는 더 낮습니다 (시간순 탐지율 19.5%)</span></div>
+    </section>
+
+    <div class="grid g21">
+      <section class="card">
+        <div class="ch"><div><h2>혼동행렬</h2><div class="sub">행 = 실제, 열 = 예측 · 진할수록 그 행에서 비중이 큼</div></div></div>
+        <div class="tw"><table class="t cm" id="cm"></table></div>
+        <div class="legend"><span><i style="background:var(--green)"></i>맞힘</span><span><i style="background:var(--red)"></i>불량을 정상으로 놓침</span><span><i style="background:var(--orange)"></i>정상에 헛경보</span><span><i style="background:var(--fg3)"></i>다른 불량으로 오분류</span></div>
+      </section>
+
+      <div class="grid" style="align-content:start">
+        <section class="card"><h2>불량 유형 구성</h2><div class="sub">train 1,182건 · 전체 5,274샷의 22.4%</div><div class="hb" id="comp" style="margin-top:12px"></div></section>
+        <section class="card"><h2>들어온 샷 판정 분포</h2><div class="sub" id="liveSub">대시보드 수신 기록 기준</div><div class="hb" id="live" style="margin-top:12px"></div></section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="feed_data.js"></script>
+<script src="monitor.js"></script>
+<script>
+(() => {
+  const { $, fmt, TYPES, state, batchShots, hbars } = MON;
+  const col = r => r >= 50 ? "var(--green)" : r >= 30 ? "var(--amber)" : "var(--red)";
+
+  // [유형, 실제, 유형 맞힘, 다른 불량, 놓침, 그 유형 경보, 헛경보, 오분류] — report_numbers.py [2]
+  const TT = [["미충전", 469, 240, 14, 215, 298, 45, 13], ["기공", 233, 144, 2, 87, 169, 23, 2], ["박리", 198, 75, 11, 112, 108, 23, 10],
+              ["얼룩", 100, 69, 6, 25, 77, 6, 2], ["변형", 106, 26, 2, 78, 51, 18, 7], ["기타", 76, 10, 1, 65, 17, 5, 2], ["합계", 1182, 564, 36, 582, 720, 120, 36]];
+  $("tt").innerHTML = `<thead><tr><th>유형</th><th class="l">정답률</th><th>실제</th><th>유형 맞힘</th><th>다른 불량</th><th>놓침</th><th>경보</th><th>헛경보</th><th>오분류</th><th>정밀도</th></tr></thead><tbody>` +
+    TT.map(([n, a, h, o, m, al, fa, mc]) => { const r = h / a * 100, sum = n === "합계";
+      return `<tr${sum ? ' class="sum"' : ""}><td>${n}</td>
+        <td class="l"><div style="display:flex;align-items:center;gap:8px"><span class="mbar" style="flex:1"><i style="width:${r}%;background:${sum ? "var(--fg3)" : col(r)}"></i></span><b>${r.toFixed(0)}%</b></div></td>
+        <td>${fmt(a)}</td><td>${fmt(h)}</td><td>${o}</td><td class="bad">${m}</td><td>${al}</td><td>${fa}</td><td>${mc}</td><td>${(h / al * 100).toFixed(0)}%</td></tr>`; }).join("") + "</tbody>";
+
+  // 혼동행렬 — report_numbers.py [2]
+  const C = ["정상", "미충전", "기공", "박리", "얼룩", "변형", "기타"];
+  const M = [[3972, 45, 23, 23, 6, 18, 5], [215, 240, 2, 8, 2, 1, 1], [87, 2, 144, 0, 0, 0, 0], [112, 4, 0, 75, 0, 6, 1],
+             [25, 6, 0, 0, 69, 0, 0], [78, 0, 0, 2, 0, 26, 0], [65, 1, 0, 0, 0, 0, 10]];
+  $("cm").innerHTML = `<thead><tr><th>실제 \\ 예측</th>${C.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>` + M.map((row, i) => {
+    const tot = row.reduce((a, b) => a + b, 0);
+    return `<tr><th style="text-align:left;padding-right:10px">${C[i]}</th>` + row.map((v, j) => {
+      const c = i === j ? "var(--green)" : (i && !j) ? "var(--red)" : (!i && j) ? "var(--orange)" : "var(--fg3)";
+      const a = Math.round(Math.min(.85, v / tot * (i === j ? .9 : 1.6)) * 100);
+      return `<td style="background:color-mix(in srgb, ${c} ${a}%, transparent);color:${a > 45 ? "#fff" : "var(--fg)"}">${fmt(v)}</td>`; }).join("") + "</tr>"; }).join("") + "</tbody>";
+
+  hbars($("comp"), [["미충전", 469], ["기공", 233], ["박리", 198], ["변형", 106], ["얼룩", 100], ["기타", 76]].map(([n, v]) =>
+    ({ label: n, value: v, text: `${v} · ${(v / 1182 * 100).toFixed(1)}%`, color: "var(--frame)" })));
+
+  const all = state().hist.flatMap(batchShots), d = all.filter(s => s.pred);
+  $("liveSub").textContent = all.length ? `들어온 ${fmt(all.length)}샷 중 경보 ${d.length}건의 유형` : "아직 들어온 샷이 없습니다. 대시보드를 먼저 여세요.";
+  hbars($("live"), TYPES.slice(1).map((t, j) => { const v = d.filter(s => s.pred === j + 1).length;
+    return { label: t, value: v, text: `${v}건`, color: "var(--orange)" }; }));
+})();
+</script>
+</body>
+</html>
