@@ -1,0 +1,1229 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3조 최종 발표</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#F4F6F3; --card:#FFFFFF; --ink:#16201D; --mute:#5B6964; --faint:#8A9792; --line:#DCE3DF; --soft:#EBF0EC;
+  --acc:#0F6B5A; --acc-l:#D3EAE2; --acc-d:#0B4F43;
+  --warn:#6FA597; --warn-l:#E3EFEA; --mid:#6FA597; --pale:#A9C9BF; --gray:#B9C4C0; --bad:#C2453A; --bad-l:#F5DCD9;
+  --c0:#B9C4C0; --c1:#0F6B5A; --c2:#0F6B5A; --c3:#0F6B5A; --c4:#0F6B5A; --c5:#0F6B5A; --c6:#0F6B5A;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#1B2421;overflow:hidden}
+body{font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;word-break:keep-all}
+.viewport{position:fixed;inset:0;overflow:hidden}
+.stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;transform:translate(-50%,-50%)}
+.slide{position:absolute;inset:0;background:var(--bg);padding:84px 110px 96px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .45s ease,visibility 0s}
+.top{position:absolute;top:26px;align-items:center;left:110px;right:110px;display:flex;justify-content:space-between;font-size:20px;color:var(--faint);letter-spacing:.02em}
+.top b{color:var(--acc);font-weight:700}
+.top .tr{display:flex;align-items:center;gap:22px}
+.logo{height:30px;width:auto;display:block}
+.cover .logo{filter:brightness(0) invert(1);opacity:.92}
+.eyebrow{font-size:24px;font-weight:700;color:var(--acc);letter-spacing:.06em;margin-top:22px}
+.eyebrow span{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--acc);color:#fff;margin-right:14px;font-size:22px;letter-spacing:0}
+h2{font-size:56px;line-height:1.24;font-weight:800;letter-spacing:-.02em;margin:22px 0 44px;text-wrap:balance;max-width:1600px}
+h2 em{font-style:normal;color:var(--acc)}
+h2 .w{color:var(--bad)}
+.body{flex:1;min-height:0;display:flex;gap:56px}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px 34px}
+.lbl{font-size:21px;font-weight:700;color:var(--mute);letter-spacing:.04em;margin-bottom:14px}
+.big{font-size:64px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.mid{font-size:40px;font-weight:800;letter-spacing:-.01em}
+.t{font-size:28px;line-height:1.5}
+.s{font-size:23px;line-height:1.5;color:var(--mute)}
+.xs{font-size:20px;color:var(--faint);line-height:1.45}
+.acc{color:var(--acc)} .warn{color:var(--warn)} .bad{color:var(--bad)} .mute{color:var(--mute)}
+.no{display:inline-grid;place-items:center;width:1.35em;height:1.35em;border-radius:50%;background:var(--acc);color:#fff;font-style:normal;font-size:.78em;font-weight:800;margin:0 .35em 0 0;vertical-align:.08em;line-height:1}
+.ek{display:flex;flex-direction:column;line-height:1.15}.ek small{font-size:.82em;color:var(--mute);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:999px;font-size:24px;font-weight:700;background:var(--soft);color:var(--ink)}
+.foot{position:absolute;left:110px;right:110px;bottom:44px;font-size:19px;color:var(--faint)}
+.tag{display:inline-block;white-space:nowrap;font-size:.76em;font-weight:700;line-height:1.35;padding:.18em .6em;border-radius:.4em;background:var(--acc-l);color:var(--acc-d);vertical-align:.1em;min-width:4.6em;text-align:center}
+.tag.no{background:var(--bad-l);color:var(--bad)}
+.tag.mid2{background:var(--soft);color:var(--mute)}
+
+/* 등장 모션 */
+.slide .in{opacity:0;transform:translateY(26px)}
+.slide.active .in{animation:rise .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 140ms + 150ms)}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.slide.active .pop{animation:pop .5s cubic-bezier(.3,1.5,.5,1) both;animation-delay:calc(var(--i,0) * 140ms + 150ms)}
+.slide .pop{opacity:0}
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+
+/* 막대 */
+.bar{position:relative;height:var(--h,34px);background:var(--soft);border-radius:10px;overflow:hidden}
+.bar>i{position:absolute;inset:0 auto 0 0;width:0;background:var(--c,var(--acc));border-radius:10px}
+.slide.active .bar>i{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i,0) * 140ms + 350ms)}
+@keyframes grow{to{width:var(--w)}}
+.vbar{position:relative;width:var(--bw,64px);height:100%;display:flex;align-items:flex-end}
+.vbar>i{display:block;width:100%;height:0;background:var(--c,var(--acc));border-radius:10px 10px 4px 4px}
+.slide.active .vbar>i{animation:vgrow 1.1s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i,0) * 140ms + 350ms)}
+@keyframes vgrow{to{height:var(--w)}}
+
+/* 표 */
+table{border-collapse:collapse;width:100%}
+#prf td,#prf th{padding:6px 12px}
+.tight td,.tight th{padding:7px 14px}
+th,td{font-size:24px;padding:12px 14px;border-bottom:1px solid var(--line);text-align:right}
+th{font-size:20px;color:var(--mute);font-weight:700}
+th:first-child,td:first-child{text-align:left}
+td.n{font-variant-numeric:tabular-nums}
+
+/* 진행 표시 */
+.prog{position:absolute;left:0;right:0;bottom:0;height:8px;background:rgba(15,107,90,.12);z-index:5}
+.prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .45s ease}
+.pageno{position:absolute;right:110px;bottom:40px;font-size:19px;color:var(--faint);z-index:5;font-variant-numeric:tabular-nums}
+.notes{position:fixed;left:0;right:0;bottom:0;max-height:34vh;overflow:auto;background:rgba(14,22,19,.94);color:#E8EFEC;font-size:18px;line-height:1.65;padding:18px 28px;display:none;z-index:20}
+.notes.on{display:block}
+.notes b{color:#8FD3BF}
+.hint{position:fixed;left:18px;bottom:16px;color:rgba(255,255,255,.55);font-size:13px;z-index:21;transition:opacity 1s}
+
+/* 표지 */
+.cover{background:#103B34;color:#F2F7F5;justify-content:center;overflow:hidden}
+.cover::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 620px at 88% 18%,rgba(126,200,178,.20),transparent 70%),radial-gradient(700px 500px at 0% 100%,rgba(6,24,21,.55),transparent 70%)}
+.cover::after{content:"";position:absolute;right:-180px;top:50%;width:860px;height:860px;transform:translateY(-50%);border-radius:50%;
+  background:repeating-radial-gradient(circle,transparent 0 58px,rgba(168,222,205,.10) 58px 60px)}
+.cover>*{position:relative;z-index:1}
+.cover>.top{position:absolute}
+.cover .bar-acc{width:84px;height:6px;border-radius:3px;background:#7FC8B2;margin-bottom:30px}
+.cover .top{color:rgba(242,247,245,.55)} .cover .top b{color:#F2F7F5}
+.cover h1{font-size:96px;line-height:1.15;font-weight:800;letter-spacing:-.03em;margin:28px 0 30px}
+.cover .sub{font-size:36px;color:rgba(255,255,255,.82)}
+.cover .who{margin-top:70px;font-size:28px;color:rgba(255,255,255,.75)}
+.cover .chip{background:rgba(127,200,178,.16);color:#BFE6DA;border:1px solid rgba(127,200,178,.35)}
+.cover h1 em{font-style:normal;color:#9BD8C5}
+
+.k7{display:grid;grid-template-columns:1.15fr 1fr 1.25fr;font-size:25px;line-height:1.42}
+.k7 .h{font-size:19px;font-weight:700;color:var(--mute);padding:0 14px 10px;border-bottom:2px solid var(--ink)}
+.k7 .r{display:contents}
+.k7 .r>*{padding:21px 14px;border-bottom:1px solid var(--line);display:block}
+.k7 .r>b{font-weight:800}
+.k7 .r>span{color:var(--ink)}
+.k7 .r.weak>*{background:#FBF1F0}
+.slide.active .k7 .r.in>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 140ms + 150ms)}
+.k7 .r.in{opacity:1;transform:none}
+.k7 .r.in>*{opacity:0}
+@media print{.k7 .r.in>*{opacity:1;animation:none}}
+.cv-wrap{display:flex;align-items:center;gap:64px;height:100%}
+.cv-text{flex:0 0 640px;min-width:0}
+.cover .cv-text h1{font-size:84px}
+.cv-sim{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+.cv-steps{display:flex;gap:10px;flex-wrap:wrap}
+.cv-steps span{font-size:19px;font-weight:700;padding:7px 16px;border-radius:999px;background:rgba(127,200,178,.14);color:#A9D9CA;transition:background .2s,color .2s}
+.cv-steps span.on{background:#7FC8B2;color:#0C2E28}
+.cv-stage{background:linear-gradient(180deg,#EEF4F1 0%,#E3ECE8 100%);border-radius:22px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.55);padding:6px}
+.cv-stage svg{display:block;width:100%;height:auto}
+.cv-stage text{font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.s-glow{animation:sglow 1.4s ease-in-out infinite alternate}@keyframes sglow{from{opacity:.75}to{opacity:1}}
+#s_flap{transform-box:fill-box;transform-origin:0 50%;transition:transform .2s ease}
+.s-blk{animation:sblk .25s ease-out both;transform-box:fill-box;transform-origin:50% 100%}@keyframes sblk{from{opacity:0;transform:translateY(-5px)}}
+.cover .who{margin-top:56px}
+.howto{font-size:21px;line-height:1.45;color:var(--mute);background:var(--soft);border-radius:12px;padding:10px 16px;margin:-4px 0 12px}
+.howto b{color:var(--ink)}
+.howto .sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-1px;margin:0 6px 0 4px}
+.cm .cm-note{height:40px;font-size:19px;font-weight:800;color:var(--mute)}
+.cm .cm-note.bad{color:var(--bad)}
+.ai-seg{display:grid;place-items:center;opacity:0}
+.slide.active .ai-seg{animation:pop .5s cubic-bezier(.3,1.4,.5,1) both;animation-delay:calc(var(--i,0) * 160ms + 200ms)}
+@media print{.ai-seg{opacity:1;animation:none}}
+/* 혼동행렬 */
+.cm{display:grid;grid-template-columns:140px repeat(7,1fr);gap:4px;font-variant-numeric:tabular-nums}
+.cm div{display:grid;place-items:center;height:51px;border-radius:8px;font-size:22px;font-weight:700}
+.cm .h{font-size:18px;color:var(--mute);font-weight:700;height:58px}
+.cm .rh{justify-items:start;padding-left:6px;font-size:20px;color:var(--ink);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){
+  .slide.active .in,.slide.active .pop{animation:none;opacity:1;transform:none}
+  .slide.active .bar>i{animation:none;width:var(--w)}
+  .slide.active .vbar>i{animation:none;height:var(--w)}
+}
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{background:none;overflow:visible;height:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .viewport{position:static;display:block;overflow:visible}
+  .stage{position:static;transform:none!important;height:auto}
+  .slide{position:relative;opacity:1;visibility:visible;break-after:page;page-break-after:always;height:1080px;width:1920px;overflow:hidden}
+  .slide .in,.slide .pop{opacity:1;transform:none;animation:none}
+  .slide .bar>i{width:var(--w);animation:none}
+  .slide .vbar>i{height:var(--w);animation:none}
+  .prog,.pageno,.notes,.hint{display:none!important}
+}
+/* 움직임 줄이기: 막대그래프 차오르기만 남김 · 나머지는 처음부터 보임 */
+.slide,.slide.active{transition:none}
+.slide .in,.slide .pop,.slide.active .in,.slide.active .pop{opacity:1!important;transform:none!important;animation:none!important}
+.k7 .r.in>*,.slide.active .k7 .r.in>*{opacity:1!important;animation:none!important}
+.kdot,.kring,.kline,.kstar,.sp,.zone,.cpt,.ai-seg{opacity:1!important;animation:none!important}
+.kline{opacity:.45!important}
+.cline{stroke-dashoffset:0!important;animation:none!important}
+</style>
+</head>
+<body>
+<div class="hint" id="hint">→ / Space 다음 · ← 이전 · F 전체화면 · N 발표 노트</div>
+<div class="viewport"><div class="stage" id="stage">
+
+<!-- 0 표지 -->
+<section class="slide cover" data-notes="발표 한 줄: 샷마다 남는 공정 기록으로, 금형을 열기 전에 불량을 미리 알 수 있는지 확인했습니다. 오른쪽은 결과 페이지의 공정 시뮬레이션으로, test 샷을 실제 기록 값 그대로 재생하고 판정은 최종 모델 KNN의 예측입니다.">
+  <div class="top"><span><b>3조</b> · 최종 발표</span><span class="tr"><span>2026. 10. 30</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="cv-wrap">
+    <div class="cv-text">
+      <div class="bar-acc in" style="--i:0"></div>
+      <div class="in" style="--i:0"><span class="chip">다이캐스팅 공정 데이터 · 불량유형 7종 예측</span></div>
+      <h1 class="in" style="--i:1">금형을 열기 전에,<br><em>불량</em>을 알 수<br>있을까?</h1>
+      <div class="who in" style="--i:3">3조 · 강동하 · 구정희 · 이지수 · 이창우</div>
+    </div>
+    <div class="cv-sim in" style="--i:2">
+      <div class="cv-steps" id="s_steps"><span>① 주탕</span><span>② 사출</span><span>③ 냉각</span><span>④ 형개 · 취출</span><span>⑤ AI 판정 · 기록</span></div>
+      <div class="cv-stage">
+        <svg viewBox="0 0 900 310" role="img" aria-label="다이캐스팅 공정 시뮬레이션">
+          <defs>
+            <linearGradient id="s_melt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD27A"/><stop offset="1" stop-color="#EF7A3B"/></linearGradient>
+            <linearGradient id="s_steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FA19C"/><stop offset="1" stop-color="#5E716C"/></linearGradient>
+          </defs>
+          <line x1="0" y1="282" x2="900" y2="282" stroke="#C9D6D1" stroke-width="2"/>
+          <text x="20" y="34" font-size="18" font-weight="700" fill="#10241F" id="s_hShot">SHOT #—</text>
+          <text x="880" y="34" font-size="13" fill="#4A5E58" text-anchor="end">test 샷 실제 기록 재생 · 판정 = 최종 KNN 예측</text>
+          <rect x="20" y="150" width="100" height="132" rx="6" fill="#2B4A44"/>
+          <text x="70" y="186" font-size="11" fill="#8FB2A9" text-anchor="middle">용탕로</text>
+          <text x="70" y="256" font-size="13" font-weight="700" fill="#FFB07A" text-anchor="middle" id="s_vMelt">—</text>
+          <rect x="30" y="160" width="80" height="10" rx="3" fill="#1A332E"/>
+          <rect x="32" y="142" width="76" height="14" rx="4" fill="url(#s_melt)" class="s-glow"/>
+          <rect x="40" y="196" width="60" height="36" rx="4" fill="#1A332E"/>
+          <rect x="48" y="208" width="44" height="6" rx="3" fill="#EF7A3B" opacity=".6" class="s-glow"/>
+          <line x1="300" y1="118" x2="560" y2="118" stroke="#A9B8B3" stroke-width="5"/>
+          <line x1="300" y1="232" x2="560" y2="232" stroke="#A9B8B3" stroke-width="5"/>
+          <rect x="150" y="240" width="420" height="42" rx="4" fill="#1D3A35"/>
+          <text x="290" y="266" font-size="11" fill="#8FB2A9" text-anchor="middle" letter-spacing="2">DIE CASTING</text>
+          <path d="M250 96 H322 V135" fill="none" stroke="#9CC7E8" stroke-width="7" stroke-linecap="round"/>
+          <path d="M250 96 H322 V135" fill="none" stroke="#3E8ED0" stroke-width="3" stroke-dasharray="6 8" id="s_cool"/>
+          <text x="252" y="86" font-size="11" fill="#4A5E58">냉각수</text>
+          <circle cx="215" cy="150" r="22" fill="#fff" stroke="#A9B8B3" stroke-width="3"/>
+          <path d="M199 166 A22 22 0 1 1 231 166" fill="none" stroke="#E5ECE9" stroke-width="4"/>
+          <line x1="215" y1="150" x2="215" y2="133" stroke="#D9473A" stroke-width="2.5" stroke-linecap="round" id="s_needle"/>
+          <circle cx="215" cy="150" r="3" fill="#10241F"/>
+          <text x="215" y="114" font-size="12" fill="#4A5E58" text-anchor="middle">주조압 <tspan font-weight="700" fill="#10241F" id="s_vCast">—</tspan></text>
+          <line x1="215" y1="172" x2="215" y2="196" stroke="#A9B8B3" stroke-width="3"/>
+          <rect x="160" y="196" width="140" height="22" rx="4" fill="url(#s_steel)"/>
+          <rect x="203" y="190" width="24" height="8" rx="2" fill="#5E716C"/>
+          <rect x="248" y="200" width="0" height="14" fill="#EF7A3B" id="s_shotMetal"/>
+          <g id="s_plunger"><rect x="120" y="201" width="80" height="12" rx="3" fill="#3B524D"/><rect x="194" y="199" width="10" height="16" rx="2" fill="#2B4A44"/></g>
+          <rect x="290" y="110" width="24" height="130" rx="3" fill="#2C4A44"/>
+          <rect x="314" y="135" width="30" height="80" rx="2" fill="#7C8B88"/>
+          <rect x="330" y="155" width="28" height="40" rx="3" fill="#B9C4C1"/>
+          <rect x="330" y="155" width="28" height="40" rx="3" fill="#9AA7A4" opacity="0" id="s_cavSolid"/>
+          <rect x="330" y="155" width="28" height="40" rx="3" fill="url(#s_melt)" opacity="0" id="s_cavHot"/>
+          <g id="s_mover">
+            <rect x="344" y="135" width="30" height="80" rx="2" fill="#7C8B88" opacity=".92"/>
+            <rect x="374" y="110" width="24" height="130" rx="3" fill="#2C4A44"/>
+            <rect x="398" y="168" width="90" height="14" fill="#5E716C"/>
+          </g>
+          <rect x="470" y="148" width="80" height="54" rx="6" fill="#2B4A44"/>
+          <text x="510" y="179" font-size="10.5" fill="#8FB2A9" text-anchor="middle">형체 실린더</text>
+          <rect x="574" y="70" width="4" height="170" fill="#A9B8B3"/>
+          <rect x="566" y="52" width="20" height="14" rx="3" fill="#E5ECE9" id="s_lampR"/>
+          <rect x="566" y="68" width="20" height="14" rx="3" fill="#E5ECE9" id="s_lampO"/>
+          <rect x="566" y="84" width="20" height="14" rx="3" fill="#3DBE77" id="s_lampG"/>
+          <rect x="420" y="250" width="330" height="8" rx="4" fill="#3B524D"/>
+          <line x1="424" y1="254" x2="746" y2="254" stroke="#8FB2A9" stroke-width="2" stroke-dasharray="4 10" id="s_belt"/>
+          <rect x="440" y="258" width="6" height="24" fill="#3B524D"/><rect x="724" y="258" width="6" height="24" fill="#3B524D"/>
+          <rect x="690" y="222" width="182" height="5" rx="2.5" fill="#3B524D"/><rect x="820" y="227" width="4" height="55" fill="#3B524D"/>
+          <text x="760" y="216" font-size="10" fill="#4A5E58" text-anchor="middle">검사 라인</text>
+          <rect x="684" y="247" width="24" height="4" rx="2" fill="#2B4A44" id="s_flap"/>
+          <text x="660" y="186" font-size="12" font-weight="700" fill="#10241F" text-anchor="middle">AI 판정 · 기록</text>
+          <rect x="634" y="196" width="6" height="54" fill="#2B4A44"/><rect x="680" y="196" width="6" height="54" fill="#2B4A44"/>
+          <rect x="634" y="192" width="52" height="8" rx="2" fill="#2B4A44"/>
+          <rect x="642" y="202" width="36" height="46" fill="#3DBE77" opacity="0" id="s_beam"/>
+          <g id="s_bubble" opacity="0">
+            <rect x="600" y="134" width="120" height="30" rx="15" fill="#3DBE77" id="s_bubbleBg"/>
+            <text x="660" y="154" font-size="13.5" font-weight="700" fill="#fff" text-anchor="middle" id="s_bubbleTx"></text>
+          </g>
+          <rect x="755" y="252" width="62" height="30" rx="4" fill="#E3F5EB" stroke="#3DBE77" stroke-width="2"/>
+          <g id="s_stackOk"></g>
+          <text x="786" y="298" font-size="11" font-weight="700" fill="#1E7A4A" text-anchor="middle" id="s_binOk">양품 0</text>
+          <rect x="827" y="252" width="62" height="30" rx="4" fill="#FDEDE3" stroke="#EF7A3B" stroke-width="2"/>
+          <g id="s_stackNg"></g>
+          <text x="858" y="298" font-size="11" font-weight="700" fill="#B4521C" text-anchor="middle" id="s_binNg">검사 0</text>
+          <g id="s_ladle">
+            <line x1="0" y1="-6" x2="-34" y2="-26" stroke="#3B524D" stroke-width="4" stroke-linecap="round"/>
+            <path d="M-14 -10 H14 L10 8 Q0 14 -10 8 Z" fill="#3B524D"/>
+            <rect x="-11" y="-10" width="22" height="5" rx="2" fill="url(#s_melt)" id="s_ladleMetal"/>
+          </g>
+          <line x1="0" y1="0" x2="0" y2="0" stroke="#EF7A3B" stroke-width="4" stroke-linecap="round" opacity="0" id="s_stream"/>
+          <rect x="0" y="0" width="28" height="18" rx="3" fill="#9AA7A4" opacity="0" id="s_part"/>
+          <g id="s_ptag" opacity="0"><rect x="0" y="0" width="40" height="12" rx="6" id="s_ptagBg"/><text x="20" y="9" font-size="9" font-weight="700" text-anchor="middle" id="s_ptagTx"></text></g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 1 주제·목표 -->
+<section class="slide" data-sec="1" data-notes="샷 하나를 찍을 때 남는 공정 기록 21개만 보고, 그 샷이 정상인지, 불량이면 어떤 불량인지 7가지 중 하나로 맞히는 문제입니다. 평가는 macro F1로, 7가지를 똑같은 비중으로 평균합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>01 주제 · 목표</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>1</span>주제 · 목표</div>
+  <h2 class="in" style="--i:1">샷마다 남는 <em>공정 기록 21개</em>로, 정상 포함 <em>7가지</em>를 예측한다</h2>
+  <div class="body" style="align-items:center;gap:40px">
+    <div class="card in" style="--i:2;flex:1">
+      <div class="lbl">입력 · 샷 하나의 공정 기록</div>
+      <div class="mid">21개 값</div>
+      <div class="t" style="margin-top:18px">용탕로 온도 · 사출 속도 · 주조압<br>냉각수 온도 · 압력 · 사이클 시간<br>공장 온도 · 습도 · 이형제 분사 …</div>
+      <div class="s" style="margin-top:14px">제품 종류(Product_Type) 포함</div>
+    </div>
+    <svg class="in" style="--i:3;flex:none" width="120" height="60" viewBox="0 0 120 60"><path d="M4 30h96M84 12l20 18-20 18" fill="none" stroke="#0F6B5A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="card in" style="--i:4;flex:1.15">
+      <div class="lbl">출력 · 7가지 중 하나</div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px">
+        <span class="chip pop" style="--i:5;padding:10px 20px;border-radius:16px;background:#E8ECEA;"><span class="ek"><span>Normal</span><small>정상</small></span></span>
+<span class="chip pop" style="--i:6;padding:10px 20px;border-radius:16px;background:var(--acc-l);"><span class="ek"><span>Short_Shot</span><small>미충전</small></span></span>
+<span class="chip pop" style="--i:7;padding:10px 20px;border-radius:16px;background:var(--acc-l);"><span class="ek"><span>Blow_Hole</span><small>기공</small></span></span>
+<span class="chip pop" style="--i:8;padding:10px 20px;border-radius:16px;background:var(--acc-l);"><span class="ek"><span>Exfoliation</span><small>박리</small></span></span>
+<span class="chip pop" style="--i:9;padding:10px 20px;border-radius:16px;background:var(--acc-l);"><span class="ek"><span>Stain</span><small>얼룩</small></span></span>
+<span class="chip pop" style="--i:10;padding:10px 20px;border-radius:16px;background:var(--acc-l);"><span class="ek"><span>Deformation</span><small>변형</small></span></span>
+<span class="chip pop" style="--i:11;padding:10px 20px;border-radius:16px;background:var(--acc-l);"><span class="ek"><span>기타불량</span><small>기타</small></span></span>
+      </div>
+      <div class="s" style="margin-top:22px">평가: <b class="acc">macro F1</b> — 7가지 F1을 똑같은 비중으로 평균.<br>정상만 많이 맞혀서는 오르지 않는다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 필요성 -->
+<section class="slide" data-sec="2" data-notes="불량은 금형을 열고 검사할 때 처음 보입니다. 그 전 단계에서 남는 기록으로 미리 의심할 수 있으면, 어디부터 검사할지 정하고, 불량이 다음 공정으로 넘어가기 전에 잡고, 불량이 몰리는 조건을 미리 손볼 수 있습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>02 필요성</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>2</span>필요성</div>
+  <h2 class="in" style="--i:1">불량은 금형을 연 뒤에야 보인다 — <em>미리 알면</em> 검사 순서와 공정 조건을 바꿀 수 있다</h2>
+  <div class="body" style="flex-direction:column;gap:46px">
+    <div style="position:relative">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:18px">
+        <div class="card in" style="--i:2;text-align:center"><div class="xs"><i class="no">1</i></div><div class="mid" style="font-size:36px">주탕</div><div class="s">쇳물 붓기</div></div>
+        <div class="card in" style="--i:3;text-align:center"><div class="xs"><i class="no">2</i></div><div class="mid" style="font-size:36px">사출</div><div class="s">빠르게 밀어 넣기</div></div>
+        <div class="card in" style="--i:4;text-align:center"><div class="xs"><i class="no">3</i></div><div class="mid" style="font-size:36px">냉각</div><div class="s">식혀서 굳히기</div></div>
+        <div class="card in" style="--i:5;text-align:center"><div class="xs"><i class="no">4</i></div><div class="mid" style="font-size:36px">형개 · 취출</div><div class="s">금형 열고 꺼내기</div></div>
+        <div class="card in" style="--i:6;text-align:center;border:3px solid var(--bad)"><div class="xs"><i class="no">5</i></div><div class="mid bad" style="font-size:36px">검사</div><div class="s">불량은 <b class="bad">여기서 처음</b> 보인다</div></div>
+      </div>
+      <div class="in" style="--i:7;margin-top:18px;width:calc(80% - 4px);border-top:4px solid var(--acc);padding-top:12px;text-align:center" ><span class="t acc" style="font-weight:700"><i class="no">1</i>~<i class="no">4</i>에서 남는 기록 21개로 <i class="no">5</i> 전에 미리 판정</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <div class="card in" style="--i:8"><div class="mid acc" style="font-size:34px">검사 우선순위</div><div class="t" style="margin-top:10px">의심 샷부터 먼저 검사</div></div>
+      <div class="card in" style="--i:9"><div class="mid acc" style="font-size:34px">후공정 손실 감소</div><div class="t" style="margin-top:10px">불량이 다음 공정 · 출하로<br>넘어가기 전에 잡기</div></div>
+      <div class="card in" style="--i:10"><div class="mid acc" style="font-size:34px">불량 조건 찾기</div><div class="t" style="margin-top:10px">불량이 몰리는 공정 조건을<br>미리 손보기</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 데이터 소개 -->
+<section class="slide" data-sec="3" data-notes="전체 7,535샷 중 정답이 있는 train은 5,274샷이고, 그중 불량이 1,182샷으로 5개 중 1개꼴입니다. 제품마다 나오는 불량이 다릅니다. 기공은 제품 2에서만, 박리와 변형은 제품 1에서만 나왔습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>03 데이터 소개 · 기초 통계</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>3</span>데이터 소개 · 기초 통계</div>
+  <h2 class="in" style="--i:1">정답 있는 <em>5,274샷</em> 중 불량은 <em>1,182샷</em> — 5개 중 1개꼴, 제품마다 불량 종류가 다르다</h2>
+  <div class="body">
+    <div class="col" style="flex:1.05">
+      <div class="card in" style="--i:2">
+        <div class="lbl">전체 7,535샷</div>
+        <div style="display:flex;height:58px;border-radius:12px;overflow:hidden;font-size:22px;font-weight:700;color:#fff">
+          <div style="flex:5274;background:var(--acc);display:grid;place-items:center">train 5,274</div>
+          <div style="flex:1130;background:#5E9C8E;display:grid;place-items:center">public 1,130</div>
+          <div style="flex:1131;background:#9BBFB6;display:grid;place-items:center">private 1,131</div>
+        </div>
+        <div class="xs" style="margin-top:10px">public · private은 정답 없이 예측만 · 모든 분석과 검증은 train 안에서</div>
+      </div>
+      <div class="card in" style="--i:3;flex:1">
+        <div class="lbl">train 유형 분포 · 정상 <b class="acc">4,092샷 (77.6%)</b> · 불량 1,182샷</div>
+        <div style="display:grid;grid-template-columns:150px 1fr 70px;gap:8px 16px;align-items:center;font-size:24px">
+          <span class="ek" style="font-size:22px"><span>Short_Shot</span><small>미충전</small></span><div class="bar" style="--i:4"><i style="--w:100%;--c:var(--c1)"></i></div><b class="n" style="text-align:right">469</b>
+          <span class="ek" style="font-size:22px"><span>Blow_Hole</span><small>기공</small></span><div class="bar" style="--i:5"><i style="--w:49.7%;--c:var(--c2)"></i></div><b style="text-align:right">233</b>
+          <span class="ek" style="font-size:22px"><span>Exfoliation</span><small>박리</small></span><div class="bar" style="--i:6"><i style="--w:42.2%;--c:var(--c3)"></i></div><b style="text-align:right">198</b>
+          <span class="ek" style="font-size:22px"><span>Deformation</span><small>변형</small></span><div class="bar" style="--i:7"><i style="--w:22.6%;--c:var(--c5)"></i></div><b style="text-align:right">106</b>
+          <span class="ek" style="font-size:22px"><span>Stain</span><small>얼룩</small></span><div class="bar" style="--i:8"><i style="--w:21.3%;--c:var(--c4)"></i></div><b style="text-align:right">100</b>
+          <span class="ek" style="font-size:22px"><span>기타불량</span><small>기타</small></span><div class="bar" style="--i:9"><i style="--w:16.2%;--c:var(--c6)"></i></div><b style="text-align:right">76</b>
+        </div>
+        <div class="xs" style="margin-top:12px">가장 적은 기타불량은 1.4% — 클래스 불균형</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card in" style="--i:4">
+        <div class="lbl">제품별 샷 수 (train)</div>
+        <table class="tight">
+          <tr><th>유형</th><th>제품 1 · 2,950샷</th><th>제품 2 · 2,324샷</th></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>Normal</span><small>정상</small></span></td><td class="n">2,429</td><td class="n">1,663</td></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>Short_Shot</span><small>미충전</small></span></td><td class="n">161</td><td class="n">308</td></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>Blow_Hole</span><small>기공</small></span></td><td class="n mute">0</td><td class="n"><b class="acc">233</b></td></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>Exfoliation</span><small>박리</small></span></td><td class="n"><b class="acc">198</b></td><td class="n mute">0</td></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>Deformation</span><small>변형</small></span></td><td class="n"><b class="acc">106</b></td><td class="n mute">0</td></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>Stain</span><small>얼룩</small></span></td><td class="n">2</td><td class="n"><b class="acc">98</b></td></tr>
+          <tr><td><span class="ek" style="font-size:22px"><span>기타불량</span><small>기타</small></span></td><td class="n">54</td><td class="n">22</td></tr>
+        </table>
+      </div>
+      <div class="s in" style="--i:6">제품 1을 먼저, 제품 2를 나중에 생산. 제품 1 불량률은 초반 37% → 후반 1%로 Spray_1_Time 설정과 함께 바뀜 → <b class="acc">Product_Type은 특징으로 유지</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 데이터 문제·전처리 -->
+<section class="slide" data-sec="4" data-notes="결측, 상수 열, 식별 열, 이상값은 근거를 보고 처리했습니다. 가장 큰 문제는 21개 값이 모두 같은 중복 기록이었습니다. 같은 샷을 두 번 적은 건지, 설정이 같은 연속 샷인지 데이터로 구분할 수 없어서 지우지 않고, 대신 검증을 따로 했습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>04 데이터 문제 · 전처리</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>4</span>데이터 문제 · 전처리</div>
+  <h2 class="in" style="--i:1">가장 큰 문제는 결측이 아니라 — 21개 값이 모두 같은 <em>중복 기록 58.7%</em></h2>
+  <div class="body">
+    <div class="col" style="flex:1.25">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card in" style="--i:2;padding:24px 28px"><div class="lbl">결측</div><div class="t" style="font-size:25px">공장 온 · 습도 train 63행 · test 27행, 두 연속 구간</div><div class="s" style="margin-top:8px">→ train 중앙값으로 채움 <span class="xs">(방법별 차이 ±0.001)</span></div></div>
+        <div class="card in" style="--i:3;padding:24px 28px"><div class="lbl">상수 열</div><div class="t" style="font-size:25px">관리범위 Min/Max 8개 — 모든 행이 같은 값</div><div class="s" style="margin-top:8px">→ 제외</div></div>
+        <div class="card in" style="--i:4;padding:24px 28px"><div class="lbl">식별 열</div><div class="t" style="font-size:25px">shot_id · id · Shot — 규칙상 특징 금지</div><div class="s" style="margin-top:8px">→ 제외 (shot_id는 정렬에만)</div></div>
+        <div class="card in" style="--i:5;padding:24px 28px"><div class="lbl">이상값</div><div class="t" style="font-size:25px">0 값 6행 모두 정상 · 40초 넘는 사이클 15행 중 14행 정상</div><div class="s" style="margin-top:8px">→ 불량 신호 아님, test에도 있어 유지</div></div>
+      </div>
+      <div class="card in" style="--i:6;background:var(--acc);color:#fff;border:none;padding:22px 30px;display:flex;align-items:center;gap:20px">
+        <span class="mid" style="font-size:34px;white-space:nowrap">→ 특징 21개</span><span class="t" style="color:rgba(255,255,255,.85);font-size:23px">열 11개 제외 · 결측은 중앙값 · 0~1 눈금 맞춤(MinMax) · 모두 train으로만 계산 · 행은 하나도 안 지움</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card in" style="--i:7;border:3px solid var(--acc);flex:1">
+        <div class="lbl" style="color:var(--acc)">중복 기록 · 동일 입력</div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span class="big acc">3,097</span><span class="t">/ 5,274샷 (58.7%)</span></div>
+        <div class="t" style="margin-top:14px;font-size:25px">21개 값이 다른 train 샷과 <b>완전히 같음</b> · 모두 생산 순서상 바로 옆 행</div>
+        <div style="margin-top:22px;display:flex;flex-direction:column;gap:12px">
+          <div class="t" style="font-size:25px"><span class="tag mid2" style="min-width:5.4em">라벨 충돌</span> 값이 같은데 정답이 다른 <b>57개 그룹</b></div>
+          <div class="t" style="font-size:25px"><span class="tag" style="min-width:5.4em">test에도</span> <b>57.7%</b>가 train에 같은 기록</div>
+        </div>
+        <div class="s" style="margin-top:22px;padding-top:18px;border-top:1px solid var(--line)">이중 기록인지 연속 샷인지 구분 불가 → <b class="acc">행은 유지</b>하고, '처음 보는 샷' 성능을 <b class="acc">따로 검증</b> (5장)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 검증·지표 -->
+<section class="slide" data-sec="5" data-notes="정상이 77.6%라 전부 정상이라고만 해도 정확도는 77.6%가 나옵니다. 그래서 7가지를 똑같이 평균하는 macro F1을 씁니다. 같은 KNN이라도 나누는 방법에 따라 점수가 크게 다릅니다. 중복 기록이 학습과 검증에 나뉘어 들어가면 높게, 처음 보는 시기를 맞히게 하면 0.138로 떨어집니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>05 검증 방법 · 평가지표</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>5</span>검증 방법 · 평가지표</div>
+  <h2 class="in" style="--i:1">같은 KNN도 <em>어떻게 나눠 시험하느냐</em>에 따라 0.56 → 0.14</h2>
+  <div class="body">
+    <div class="col" style="flex:.8">
+      <div class="card in" style="--i:2;flex:1">
+        <div class="lbl">왜 정확도가 아니라 macro F1인가</div>
+        <div class="t">'전부 정상'이라고만 답해도 정확도는 높다</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0">
+          <div style="background:var(--soft);border-radius:16px;padding:20px"><div class="s">정확도</div><div class="big" style="font-size:48px">77.6%</div></div>
+          <div style="background:var(--bad-l);border-radius:16px;padding:20px"><div class="s">macro F1</div><div class="big bad" style="font-size:48px">0.125</div></div>
+        </div>
+        <div class="s">macro F1 = 7가지 유형 F1의 단순 평균 → 정상만 맞혀서는 오르지 않고, 76건뿐인 기타불량도 똑같이 중요. 리더보드 채점 기준이라 모델 선택은 이 점수로</div>
+        <div class="lbl" style="margin-top:22px">현장에서 함께 보는 두 숫자 (최종 KNN)</div>
+        <table class="tight" style="font-size:22px">
+          <tr><th></th><th>무작위로 나눔</th><th>처음 보는 시기</th></tr>
+          <tr><td><b>불량 탐지율</b> <span class="xs">재현율</span><br><span class="xs">실제 불량 중 잡은 것</span></td><td class="n">1,182건 중 <b>600</b></td><td class="n">231건 중 <b class="bad">45</b></td></tr>
+          <tr><td><b>경보 적중률</b> <span class="xs">정밀도</span><br><span class="xs">경보 중 실제 불량</span></td><td class="n">720건 중 <b>600</b></td><td class="n">200건 중 <b class="bad">45</b></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card in" style="--i:3;flex:1;display:flex;flex-direction:column;justify-content:space-between">
+        <div class="lbl">세 가지 분할 · 각각 무엇을 재나 (최종 KNN)</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="t"><b>무작위로 나눔</b> <span class="s">· 5번 나눠 시험 × 3회</span></span><span class="mid acc">0.562</span></div>
+          <div class="bar" style="--i:4;--h:30px;margin:8px 0"><i style="--w:93.7%"></i></div>
+          <div class="s">중복 기록이 학습 · 검증에 나뉨 → <b>리더보드와 비슷한 조건</b></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="t"><b>같은 기록끼리 묶어 나눔</b> <span class="s">· 5번 × 3회</span></span><span class="mid" style="color:var(--mid)">0.268</span></div>
+          <div class="bar" style="--i:5;--h:30px;margin:8px 0"><i style="--w:44.7%;--c:var(--warn)"></i></div>
+          <div class="s">값이 같은 샷을 한 묶음으로 → <b>처음 보는 샷</b> 성능</div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="t"><b>시간순</b> 앞 80% → 뒤 20%</span><span class="mid bad">0.138</span></div>
+          <div class="bar" style="--i:6;--h:30px;margin:8px 0"><i style="--w:23%;--c:var(--bad)"></i></div>
+          <div class="s">과거로 학습해 다음 시기를 맞힘 → <b>현장 배포 조건</b>에 가장 가까움</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 모델 실험·비교 -->
+<section class="slide" data-sec="6" data-notes="같은 5-fold로 네 가지 모델을 비교했습니다. 로지스틱은 가중치 없이는 거의 전부 정상, 가중치를 주면 거의 전부 불량이라고 했습니다. KNN과 RF는 잡은 불량이 600건 대 598건으로 거의 같았습니다. 불균형 대응이나 앙상블 같은 개선 실험은 불량을 더 잡게는 했지만 macro F1을 올리지 못했습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>06 모델 실험 · 비교</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>6</span>모델 실험 · 비교</div>
+  <h2 class="in" style="--i:1">같은 시험에서 <em>KNN 0.5825</em> — RF와 비슷하고, MLP · 로지스틱보다 높다</h2>
+  <div class="body">
+    <div class="card in" style="--i:2;flex:1.15;display:flex;flex-direction:column;gap:14px">
+      <div class="lbl">macro F1 · train을 5묶음으로 나눠 돌아가며 시험 → 모든 샷을 한 번씩 검증</div>
+      <div style="display:grid;grid-template-columns:250px 1fr 110px;gap:16px 18px;align-items:center">
+        <span class="t"><b>KNN</b> <span class="tag">최종</span></span><div class="bar" style="--i:3;--h:36px"><i style="--w:97.1%"></i></div><b class="mid acc" style="font-size:32px;text-align:right">0.5825</b>
+        <span class="t">RandomForest</span><div class="bar" style="--i:4;--h:36px"><i style="--w:95.2%;--c:#6FA597"></i></div><b class="mid" style="font-size:32px;text-align:right">0.5714</b>
+        <span class="t">PLR MLP</span><div class="bar" style="--i:5;--h:36px"><i style="--w:89%;--c:#6FA597"></i></div><b class="mid" style="font-size:32px;text-align:right">0.5342</b>
+        <span class="t" style="font-size:24px">로지스틱 (가중치)</span><div class="bar" style="--i:6;--h:36px"><i style="--w:39.1%;--c:var(--c0)"></i></div><b class="mid" style="font-size:32px;text-align:right">0.2348</b>
+        <span class="t">로지스틱</span><div class="bar" style="--i:7;--h:36px"><i style="--w:21.8%;--c:var(--c0)"></i></div><b class="mid" style="font-size:32px;text-align:right">0.1306</b>
+      </div>
+      <table class="tight" style="margin-top:0">
+        <tr><th>모델</th><th>불량 1,182건 중 잡음</th><th>정상 4,092건 중 헛경보</th></tr>
+        <tr><td><b>KNN</b></td><td class="n"><b>600</b> (50.8%)</td><td class="n"><b>120</b></td></tr>
+        <tr><td>RandomForest</td><td class="n">598 (50.6%)</td><td class="n">124</td></tr>
+        <tr><td>로지스틱 (가중치)</td><td class="n">1,128 (95.4%)</td><td class="n bad">3,147</td></tr>
+        <tr><td>로지스틱</td><td class="n bad">5 (0.4%)</td><td class="n">10</td></tr>
+      </table>
+    </div>
+    <div class="card in" style="--i:5;flex:.85">
+      <div class="lbl">주요 개선 실험 — 모두 최종에서 제외</div>
+      <div style="display:flex;flex-direction:column;gap:18px;font-size:24px;line-height:1.45">
+        <div><b>불량 샘플 늘리기 (SMOTE · 노이즈)</b><br><span class="mute">탐지율 48% → 62%, macro F1 −0.010 ~ −0.023</span></div>
+        <div><b>정상 확률 낮춰 불량 쪽으로 판정</b><br><span class="mute">배율 0.9 ~ 0.4 모두 하락 → 1.0 유지</span></div>
+        <div><b>클래스 가중치 앙상블</b><br><span class="mute">처음 0.58 → 중첩 검증으로 다시 재니 0.546</span></div>
+        <div><b>KNN + RF + XGB 앙상블 · 제품별 모델</b><br><span class="mute">+0.0023 · −0.0008 → 기준 미달 (다음 장)</span></div>
+        <div><b>변수 51개 조합 · 세부 라벨 학습</b><br><span class="mute">−0.006 · 전부 하락</span></div>
+      </div>
+      <div class="s" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">불량을 더 '의심'하게 하면 헛경보가 더 빨리 늘어 <b>macro F1은 오르지 않았다</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6b 데이터 양에 따른 모델별 성능 -->
+<section class="slide" data-sec="6" data-notes="학습 데이터를 20%에서 100%까지 늘려 가며 같은 검증 20%로 재 봤습니다. 무작위로 나누면 KNN과 RF는 데이터가 늘수록 올라가고 KNN이 계속 가장 높습니다. 그런데 시간순으로 나누면 세 모델 모두 데이터를 다섯 배로 늘려도 거의 그대로입니다. 무작위에서 오르는 건 같은 기록이 학습 쪽에 들어갈 확률이 함께 늘어난 영향이 섞인 것으로 봅니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>06 모델 실험 · 비교</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>6</span>모델 실험 · 데이터 양</div>
+  <h2 class="in" style="--i:1">데이터를 늘리면 무작위에선 오르지만 — <em>시간순에선 어떤 모델도 그대로</em></h2>
+  <div class="body" style="gap:32px">
+    <div class="card in" style="--i:2;flex:1;display:flex;flex-direction:column">
+      <div class="lbl">무작위로 나눔 (학습 80 : 시험 20) · 리더보드와 비슷한 조건</div>
+      <svg id="dcR" viewBox="0 0 780 480" style="width:100%;flex:1"></svg>
+    </div>
+    <div class="card in" style="--i:3;flex:1;display:flex;flex-direction:column">
+      <div class="lbl">시간순으로 나눔 (앞 80 → 뒤 20) · 처음 보는 시기</div>
+      <svg id="dcT" viewBox="0 0 780 480" style="width:100%;flex:1"></svg>
+    </div>
+  </div>
+  <div class="foot in" style="--i:6">macro F1 · 검증 20% 고정, 학습 데이터 20% → 100% (100% 외에는 3번 반복 평균) · MLP는 작은 MLP(64-32)</div>
+</section>
+
+<!-- 7a 최종 모델 선택 이유 1 -->
+<section class="slide" data-sec="7" data-notes="KNN은 새 샷과 공정 기록이 가장 비슷한 과거 샷 15개를 찾아, 가까울수록 크게 반영해 판정합니다. 이 특징들이 이 데이터의 구조와 잘 맞았습니다. 같은 값의 기록이 절반 넘게 있어서 비슷한 샷을 그대로 찾아오는 방식이 강했고, 불량은 조건이 겹친 좁은 구간에 있어서 직선 경계를 긋는 로지스틱은 실패했습니다. 제품 1과 2는 공정 조건이 달라 이웃이 섞이지 않아서 제품별로 나눌 필요도 없었습니다. 설정은 세 가지뿐이고 결과가 설정에 둔감했습니다. 다만 같은 기록이 없는 처음 보는 샷에는 약합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>07 최종 모델 선택 이유</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>7</span>최종 모델 선택 이유 <i class="no">1</i></div>
+  <h2 class="in" style="--i:1" >KNN의 특징이 <em>이 데이터의 구조</em>와 맞았다</h2>
+  <div class="body" style="gap:36px">
+    <div class="card in" style="--i:2;flex:.62;display:flex;flex-direction:column">
+      <div class="lbl">KNN · 가장 비슷한 과거 샷 15개로 판정 <span class="xs">(그림은 예시)</span></div>
+      <svg id="knnfig" viewBox="0 0 600 470" style="width:100%;flex:1"></svg>
+      <div class="s" style="font-size:21px">21개 값을 같은 눈금(0~1)으로 맞추고 → 값 차이가 가장 작은 과거 샷 <b>15개</b> → 가까울수록 더 큰 표</div>
+    </div>
+    <div class="card in" style="--i:3;flex:1.38;padding:24px 30px">
+      <div class="k7">
+        <div class="h">KNN의 특징</div><div class="h">이 데이터에서는</div><div class="h">근거</div>
+        <div class="r in" style="--i:4"><b><i class="no">1</i>비슷한 과거 샷을 그대로 찾아온다</b><span>21개 값이 같은 중복 기록이 <b>58.7%</b></span><span>같은 기록이 있는 샷 macro F1 <b class="acc">0.831</b></span></div>
+        <div class="r in" style="--i:5"><b><i class="no">2</i>경계 모양을 가정하지 않고 주변만 본다</b><span>불량은 조건이 겹친 <b>좁은 구간</b>에 몰림</span><span>직선 경계 로지스틱 0.1306 → KNN <b class="acc">0.5825</b></span></div>
+        <div class="r in" style="--i:6"><b><i class="no">3</i>조건이 다르면 거리가 멀다</b><span>제품 1 · 2는 주조압 1,052 vs 596</span><span>이웃 중 다른 제품 <b class="acc">0.0%</b> → 제품별 모델 불필요 (−0.0008)</span></div>
+        <div class="r in" style="--i:7"><b><i class="no">4</i>설정이 3개뿐 · 판정 근거가 보인다</b><span>이웃 수 · 거리 재는 법 · 가까울수록 가중</span><span>84개 설정 중 <b class="acc">1등</b>, 이웃 수 11~21이면 차이 &lt; 0.01, 나누는 방법을 21번 바꿔도 0.5466 ~ 0.5825</span></div>
+        <div class="r in weak" style="--i:8"><b><i class="no" style="background:var(--bad)">!</i>같은 기록이 없으면 약하다</b><span>처음 보는 샷 · 다른 시기</span><span>같은 기록 없는 샷 <b class="bad">0.269</b> → 한계 (9장)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7b 최종 모델 선택 이유 <i class="no">2</i> -->
+<section class="slide" data-sec="7" data-notes="점수 차이가 작아서 점수만으로 고르지 않았습니다. 기준을 먼저 정했습니다. 같은 fold 15번에서 짝지어 비교해 평균 0.01 이상 오르고 15번 중 12번 이상 이겨야 KNN을 바꿉니다. fold 하나만 바꿔도 점수가 ±0.03 흔들리기 때문입니다. 앙상블은 0.0023, 공정 변수 추가는 0.0035 높았지만 기준에 못 미쳤습니다. 그래서 가장 단순한 KNN을 유지했고, public에서도 일곱 번 중 가장 높았습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>07 최종 모델 선택 이유</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>7</span>최종 모델 선택 이유 <i class="no">2</i></div>
+  <h2 class="in" style="--i:1"><em>'확실히 이김'</em> 기준을 넘은 대안이 없었다 → 가장 단순한 KNN 유지</h2>
+  <div class="body" style="gap:44px">
+    <div class="card in" style="--i:2;flex:1.2;display:flex;flex-direction:column">
+      <div class="lbl">KNN과 같은 시험 세트 15개로 짝지어 비교</div>
+      <div class="howto"><b>읽는 법</b> 점 하나 = KNN 대신 써 볼 대안. <b class="acc">오른쪽 위 초록 칸</b>(평균 +0.01 이상 · 15번 중 12번 이상 승리)에 들어와야 KNN을 바꾼다 → <b class="bad">4개 모두 칸 밖</b></div>
+      <svg id="scatter" viewBox="0 0 860 520" style="width:100%;flex:1"></svg>
+    </div>
+    <div class="col" style="flex:.8">
+      <div class="card in" style="--i:3;border:3px solid var(--acc)">
+        <div class="lbl" style="color:var(--acc)">채택 기준 (먼저 정함)</div>
+        <div class="t"><b>평균 +0.01 이상</b> 그리고<br><b>15번 중 12번 이상</b> 승리</div>
+        <div class="s" style="margin-top:10px">시험 세트 하나만 바뀌어도 점수가 ±0.03 흔들림 → 이보다 작은 차이는 운과 구분 불가</div>
+      </div>
+      <div class="card in" style="--i:4">
+        <div class="lbl">결과</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:24px;line-height:1.4">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span>KNN+RF+XGB 앙상블 <b>+0.0023</b> · 11/15</span><span class="tag no">미달</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span>파생 변수 4개 추가 <b>+0.0035</b> · 10/15</span><span class="tag no">미달</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span>제품별 KNN <b>−0.0008</b> · 4/15</span><span class="tag no">미달</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span>RF (가장 나은 설정) <b>−0.007</b> · 6/15</span><span class="tag no">미달</span></div>
+        </div>
+      </div>
+      <div class="card in" style="--i:5;background:var(--acc);color:#fff;border:none">
+        <div class="t" style="font-size:25px">결과적으로 public 7번 제출 중에서도 <b>KNN이 최고 (0.5890)</b> — 선택은 public이 아니라 검증으로 했다</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 상세 평가 -->
+<section class="slide" data-sec="8" data-notes="세로가 실제, 가로가 예측입니다. 잡은 불량 600건 중 564건은 종류까지 맞혔고, 불량끼리 헷갈린 건 36건뿐입니다. 놓친 582건은 전부 정상이라고 판정한 것입니다. 약점은 종류 구분이 아니라 불량이냐 아니냐입니다. 얼룩과 기공은 잘 맞히지만 변형과 기타는 약합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>08 최종 모델 상세 평가</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>8</span>최종 모델 상세 평가</div>
+  <h2 class="in" style="--i:1">종류는 잘 가리지만 — <em>놓친 582건은 전부 '정상'</em>으로 판정했다</h2>
+  <div class="body" style="gap:40px">
+    <div class="card in" style="--i:2;flex:1.08">
+      <div class="lbl">혼동행렬 · 가로줄 = 실제, 세로줄 = 모델 판정 (train 5,274샷, 5번 나눠 시험)</div>
+      <div class="howto"><b>읽는 법</b> <span class="sw" style="background:#2D7D6A"></span>대각선 = 맞힘 · <span class="sw" style="background:#CF5F55"></span>첫 세로줄 = 불량인데 <b>정상으로 놓침</b> · <span class="sw" style="background:#A7B2AE"></span>나머지 = 다른 불량으로 착각</div>
+      <div class="cm" id="cm"></div>
+      <div class="xs" style="margin-top:8px">색이 진할수록 그 실제 유형 중 비율이 높음</div>
+    </div>
+    <div class="col" style="flex:.92">
+      <div class="card in" style="--i:3">
+        <div class="lbl">클래스별 정밀도 · 재현율 · F1</div>
+        <table id="prf"></table>
+      </div>
+      <div class="in" style="--i:4;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card" style="padding:18px 24px;grid-column:span 2">
+          <div class="lbl" style="margin-bottom:8px">왜 변형 · 기타불량이 약한가 · 학습 쪽에 같은 기록이 있는 비율</div>
+          <div class="t" style="font-size:23px">다른 불량 <b>41 ~ 61%</b> &nbsp;vs&nbsp; 변형 <b class="bad">9%</b> · 기타불량 <b class="bad">17%</b></div>
+          <div class="s" style="font-size:20px;margin-top:4px">같은 기록이 없으면 어떤 불량도 5 ~ 22%만 맞힘</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8b 특징 중요도 -->
+<section class="slide" data-sec="8" data-notes="모델이 어떤 공정 조건을 가장 많이 봤는지입니다. 이슬점, 고속 사출 속도, 건조도, 공장 습도 순으로 높았습니다. 공장 공기 상태가 위쪽에 몰려 있습니다. 다만 중요하다는 건 예측에 쓸모가 있었다는 뜻이지 원인이라는 뜻은 아닙니다. 최종 KNN은 중요도를 따로 내지 않아서, 이슬점·건조도 등 파생 변수 4개를 더한 랜덤포레스트로 확인했습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>08 최종 모델 상세 평가</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>8</span>특징 중요도</div>
+  <h2 class="in" style="--i:1">모델은 <em>공장 공기 상태</em>와 고속 사출 속도를 가장 많이 봤다</h2>
+  <div class="body" style="gap:40px">
+    <div class="card in" style="--i:2;flex:1.3">
+      <div class="lbl">중요도 상위 10개 <span class="xs">— <span style="color:var(--acc);font-weight:800">■</span> 공장 공기 상태 · <span style="color:var(--pale);font-weight:800">■</span> 설비 · 공정 설정</span></div>
+      <div id="impbars" style="display:grid;grid-template-columns:300px 1fr 86px;gap:10px 18px;align-items:center;font-size:24px;margin-top:10px"></div>
+    </div>
+    <div class="col" style="flex:.7">
+      <div class="card in" style="--i:3;border:3px solid var(--bad)">
+        <div class="lbl" style="color:var(--bad)">꼭 같이 볼 단서</div>
+        <div class="t"><b>중요하다 = 예측에 쓸모 있었다</b><br>원인이라는 뜻은 아니다</div>
+        <div class="s" style="margin-top:10px">원인인지는 조건을 하나만 바꾼 시험 생산으로 확인 (10장)</div>
+      </div>
+      <div class="card in" style="--i:4">
+        <div class="lbl">현장 숫자로 보면</div>
+        <div class="t" style="font-size:25px">건조도 중앙값<br>변형 <b class="acc">12.5</b> · 기타불량 <b class="acc">11.9</b> vs 정상 <b>7.9</b></div>
+        <div class="s" style="margin-top:8px">→ 덥고 건조한 날 변형이 많이 관찰됨</div>
+      </div>
+      <div class="card in" style="--i:5">
+        <div class="lbl">어떤 모델의 중요도인가</div>
+        <div class="s">KNN은 중요도를 따로 내지 않아, 파생 변수 4개를 더한 <b>랜덤포레스트(300그루)</b>로 확인</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9a 최종 결과 -->
+<section class="slide" data-sec="9" data-notes="리더보드에는 일곱 번 제출했고, 3회차 KNN이 0.5890으로 가장 높았습니다. 이후 앙상블과 불량을 더 잡는 모델을 냈지만 넘지 못했습니다. 다만 0.589는 중복 기록이 많은 조건의 점수입니다. test의 57.7%가 train에 같은 기록이 있어서, 무작위 검증 0.570과 비슷한 조건입니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>09 최종 결과 · 한계</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>9</span>최종 결과</div>
+  <h2 class="in" style="--i:1">public <em>0.5890</em> — 7번 제출 중 최고, 최종 제출은 3회차 KNN</h2>
+  <div class="body" style="gap:44px">
+    <div class="card in" style="--i:2;flex:1.35;display:flex;flex-direction:column">
+      <div class="lbl">public macro F1 · 제출 7회 (리더보드 통보값)</div>
+      <div id="lb" style="flex:1;display:flex;align-items:flex-end;gap:22px;padding:10px 4px 0"></div>
+    </div>
+    <div class="col" style="flex:.65">
+      <div class="card in" style="--i:3">
+        <div class="lbl">최종 제출</div>
+        <div class="big acc">0.5890</div>
+        <div class="s" style="margin-top:10px">정확도 86.9% · 불량 탐지율 56.1%<br>train 5,274샷 전체로 학습 → 2,261샷 예측<br><b>python main.py</b>로 다시 실행해 차이 0샷</div>
+      </div>
+      <div class="card in" style="--i:4">
+        <div class="lbl">이 점수의 조건</div>
+        <div class="t" style="font-size:25px">test의 <b>57.7%</b>가 train에 같은 기록</div>
+        <div class="s" style="margin-top:6px">→ 무작위 검증 0.570과 비슷한 조건<br>private은 아직 채점 전</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9b 한계 -->
+<section class="slide" data-sec="9" data-notes="현장에서 판정할 샷은 아직 만들지 않은 샷이라, 학습 데이터에 값이 똑같은 샷이 있다는 보장이 없습니다. 과거로 학습해 다음 시기를 맞히게 하면 불량 231건 중 45건, 10개 중 2개만 잡습니다. 이게 실제로 썼을 때 기대할 성능입니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>09 최종 결과 · 한계</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>9</span>한계</div>
+  <h2 class="in" style="--i:1">처음 보는 시기에는 불량 <span class="w">10개 중 2개</span>만 잡는다 — 이것이 현장 성능에 가깝다</h2>
+  <div class="body" style="gap:40px">
+    <div class="col" style="flex:1.1">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1">
+        <div class="card in" style="--i:2;text-align:center;display:flex;flex-direction:column;justify-content:center">
+          <div class="lbl">무작위로 나눔 · 리더보드와 비슷</div>
+          <div class="big acc" style="font-size:96px">53%</div>
+          <div class="t" style="margin-top:10px">불량 237건 중 126건</div>
+          <div class="s">macro F1 0.570 · 헛경보 27건</div>
+        </div>
+        <div class="card in" style="--i:3;text-align:center;display:flex;flex-direction:column;justify-content:center;border:3px solid var(--bad)">
+          <div class="lbl">시간순으로 나눔 · 처음 보는 시기</div>
+          <div class="big bad" style="font-size:96px">19%</div>
+          <div class="t" style="margin-top:10px">불량 231건 중 45건</div>
+          <div class="s">macro F1 0.138 · 헛경보 155건</div>
+        </div>
+      </div>
+      <div class="card in" style="--i:4;padding:24px 30px">
+        <div class="lbl">왜 차이가 나나 — 학습 쪽에 같은 기록이 있느냐</div>
+        <div style="display:grid;grid-template-columns:230px 1fr 110px;gap:12px 16px;align-items:center;font-size:24px">
+          <span>같은 기록 있음</span><div class="bar" style="--i:5"><i style="--w:92%"></i></div><b class="acc" style="text-align:right">92%</b>
+          <span>같은 기록 없음</span><div class="bar" style="--i:6"><i style="--w:13%;--c:var(--bad)"></i></div><b class="bad" style="text-align:right">13%</b>
+        </div>
+        <div class="xs" style="margin-top:8px">불량 탐지율 · 563건 중 517건 vs 619건 중 83건</div>
+      </div>
+    </div>
+    <div class="card in" style="--i:5;flex:.9">
+      <div class="lbl">한계</div>
+      <div style="display:flex;flex-direction:column;gap:20px;font-size:25px;line-height:1.45">
+        <div><b>처음 보는 샷에 약하다</b><br><span class="mute">지금 21개 값으로는 같은 기록이 없는 샷의 불량을 가르기 어렵다</span></div>
+        <div><b>같은 기록을 더 모아도 그대로</b><br><span class="mute">학습 데이터 20% → 100%에서 시간순 0.136 → 0.141</span></div>
+        <div><b>설정을 같은 train으로 골랐다</b><br><span class="mute">교차검증 점수가 약간 낙관적일 수 있다</span></div>
+        <div><b>시간순 검증 구간엔 3종류뿐</b><br><span class="mute">변형은 생산 초반, 얼룩은 한 구간에만 있음</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10a 활용 방안 -->
+<section class="slide" data-sec="10" data-notes="놓침 1건을 헛경보 10건과 같다고 보면, 처음 보는 시기 기준으로는 어떤 경보 기준도 전수 검사보다 비쌉니다. 그래서 지금은 모델이 검사를 대신할 수 없습니다. 검사는 그대로 하고, 모델이 의심한 샷부터 먼저 보는 방식으로 몇 주 시험해 보자고 제안합니다. 놓침 비용 비율과 하루 검사 가능 수량은 현장에서 정해 주셔야 합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>10 활용 방안 · 개선 방향</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>10</span>활용 방안</div>
+  <h2 class="in" style="--i:1">지금은 검사를 대신할 수 없다 → <em>검사는 그대로, 순서만 모델로</em></h2>
+  <div class="body" style="gap:44px">
+    <div class="card in" style="--i:2;flex:1.1">
+      <div class="lbl">하루 비용 · 처음 보는 시기 기준, 하루 1,000샷 (불량 219샷)</div>
+      <div style="display:grid;grid-template-columns:200px 1fr 100px;gap:14px 16px;align-items:center;font-size:24px" id="cost"></div>
+      <div class="xs" style="margin-top:16px">비용 = 놓침 × 10 + 헛경보 × 1 (1 = 정상품 1개 재검사, 10 : 1은 가정) · 배율 = 정상 확률에 곱하는 값, 낮을수록 경보 많음 · 전수 검사는 검사가 불량을 다 잡는다는 가정</div>
+    </div>
+    <div class="col" style="flex:.9">
+      <div class="card in" style="--i:3">
+        <div class="lbl">지금 쓰면 (배율 1.0)</div>
+        <div class="t">하루 1,000샷에 경보 약 <b>190건</b>,<br>그중 실제 불량 약 <b>43건</b></div>
+      </div>
+      <div class="card in" style="--i:4;flex:1">
+        <div class="lbl">제안 · 몇 주 시범 운영</div>
+        <div style="display:flex;flex-direction:column;gap:14px;font-size:25px;line-height:1.4">
+          <div><b class="acc"><i class="no">1</i></b> 지금 검사는 줄이지 않고 그대로</div>
+          <div><b class="acc"><i class="no">2</i></b> 모델이 의심한 샷을 <b>먼저</b> 검사</div>
+          <div><b class="acc"><i class="no">3</i></b> 의심 샷 중 실제 불량 수 · 표시 없이 지나간 불량 수를 센다</div>
+          <div><b class="acc"><i class="no">4</i></b> 현장이 정한 비용 비율 · 하루 검사 가능 수량으로 계속 쓸지, 배율을 얼마로 할지 결정</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10b 불량이 몰리는 조건 -->
+<section class="slide" data-sec="10" data-notes="구간을 나눠 불량 비율을 직접 셌습니다. 제품 2는 냉각수 온도가 26.4도 이하일 때 기공이 23.4%, 그보다 높으면 6.2%였습니다. 다만 이건 함께 나타난 관련성이고, 조건과 생산 시기가 겹쳐 원인이라고 할 수는 없습니다. 한 조건만 바꾼 시험 생산으로 확인해야 합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>10 활용 방안 · 개선 방향</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>10</span>활용 방안 · 공정 조건</div>
+  <h2 class="in" style="--i:1">불량이 몰리는 조건 — 냉각수 <em>26.4°C 이하</em>에서 기공이 4배</h2>
+  <div class="body" style="gap:28px">
+    <div class="card in" style="--i:2;flex:1;display:flex;flex-direction:column">
+      <div class="lbl">Blow_Hole (기공) · 제품 2 · 냉각수 온도</div>
+      <div style="flex:1;display:flex;align-items:flex-end;justify-content:center;gap:56px;padding:0 20px">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px"><b class="mid acc">23.4%</b><div class="vbar" style="--i:3;--bw:110px;height:300px"><i style="--w:90.3%;--c:var(--c2)"></i></div><span class="s">≤ 26.4°C<br>512샷</span></div>
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px"><b class="mid">6.2%</b><div class="vbar" style="--i:4;--bw:110px;height:300px"><i style="--w:23.9%;--c:var(--pale)"></i></div><span class="s">&gt; 26.4°C<br>1,812샷</span></div>
+      </div>
+    </div>
+    <div class="card in" style="--i:3;flex:1;display:flex;flex-direction:column">
+      <div class="lbl">Stain (얼룩) · 제품 2 · 냉각수 압력</div>
+      <div style="flex:1;display:flex;align-items:flex-end;justify-content:center;gap:56px;padding:0 20px">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px"><b class="mid acc">9.7%</b><div class="vbar" style="--i:4;--bw:110px;height:300px"><i style="--w:37.5%;--c:var(--c4)"></i></div><span class="s">상위 1/3<br>&gt; 2.730 · 762샷</span></div>
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px"><b class="mid">0.0%</b><div class="vbar" style="--i:5;--bw:110px;height:300px"><i style="--w:0.5%;--c:var(--pale)"></i></div><span class="s">하위 1/3<br>≤ 2.640 · 852샷</span></div>
+      </div>
+    </div>
+    <div class="card in" style="--i:4;flex:1;display:flex;flex-direction:column">
+      <div class="lbl">Deformation (변형) · 제품 1 · 조건 겹치기</div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;font-size:22px">
+        <div>Spray_1_Time 1.0 기간 <span class="mute">988샷</span><div class="bar" style="--i:5;--h:28px;margin-top:4px"><i style="--w:39.4%;--c:var(--c5)"></i></div><b>10.2%</b></div>
+        <div>+ 공장 온도 &gt; 34.7°C <span class="mute">536샷</span><div class="bar" style="--i:6;--h:28px;margin-top:4px"><i style="--w:60.6%;--c:var(--c5)"></i></div><b>15.7%</b></div>
+        <div>+ 용탕로 ≤ 700°C <span class="mute">268샷</span><div class="bar" style="--i:7;--h:28px;margin-top:4px"><i style="--w:83.4%;--c:var(--c5)"></i></div><b>21.6%</b></div>
+        <div>+ 분사 시간 ≤ 8.0초 <span class="mute">197샷</span><div class="bar" style="--i:8;--h:28px;margin-top:4px"><i style="--w:100%;--c:var(--c5)"></i></div><b class="acc">25.9%</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot in" style="--i:9"><span class="tag mid2">주의</span>&nbsp; 관련성이지 원인 확인이 아니다 — 조건과 생산 시기가 겹친다. 한 조건만 바꾼 통제 시험 생산으로 확인해야 한다 (train 기준, 중복 기록도 각각 한 샷으로 셈)</div>
+</section>
+
+<!-- 10c 개선 방향 -->
+<section class="slide" data-sec="10" data-notes="같은 기간의 기록을 5배로 늘려도 시간순 성능은 그대로였습니다. 그래서 같은 기록을 더 모으기보다, 지금 재지 않는 값을 새로 재는 것이 먼저입니다. 이슬점과 건조도만 따로 넣어 시간순으로 다시 확인하고, 금형 온도 같은 새 측정과 통제 시험 생산을 제안합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>10 활용 방안 · 개선 방향</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>10</span>개선 방향</div>
+  <h2 class="in" style="--i:1">같은 기록을 더 모으기보다 — <em>지금 안 재는 값</em>을 새로 재야 한다</h2>
+  <div class="body" style="gap:44px">
+    <div class="card in" style="--i:2;flex:1;display:flex;flex-direction:column">
+      <div class="lbl">학습 데이터 양을 늘리면 · KNN macro F1 (검증 20% 고정)</div>
+      <svg id="curve" viewBox="0 0 760 470" style="width:100%;flex:1"></svg>
+      <div class="xs">무작위에서 오르는 것은 검증 샷의 같은 기록이 학습 쪽에 들어갈 확률이 함께 늘어난 영향이 섞인 것으로 추정</div>
+    </div>
+    <div class="col" style="flex:1">
+      <div class="card in" style="--i:3">
+        <div class="lbl"><i class="no">1</i> 이슬점 · 건조도만 따로 넣어 재확인</div>
+        <div class="s">변형 · 기타불량은 건조도 중앙값 12.5 · 11.9 vs 정상 7.9. 4개를 함께 넣은 RF는 중복 기록 묶기에서 +0.019 (15번 중 13번) → <b>시간순 기준</b>으로 다시 확인</div>
+      </div>
+      <div class="card in" style="--i:4">
+        <div class="lbl"><i class="no">2</i> 데이터 추가 — 양보다 종류</div>
+        <div class="s"><b>금형 온도</b> 등 지금 없는 측정값, 설정을 바꾼 <b>다른 생산 시기</b>의 기록</div>
+      </div>
+      <div class="card in" style="--i:5">
+        <div class="lbl"><i class="no">3</i> 통제 시험 생산</div>
+        <div class="s">같은 날 냉각수 온도만 <b>26°C / 27°C</b>로 나눠 기공 비율 비교 · 변형도 Spray_1_Time 1.0에서 용탕로 온도 · 분사 시간을 하나씩 바꿔 확인</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Q&A -->
+<!-- 부록 AI 사용 -->
+<section class="slide" data-sec="11" data-notes="AI로 코드 작성, 실험 설계, 결과 요약을 했습니다. AI 조언 11건을 모두 같은 시험으로 다시 재서 판정했고, 채택은 2건뿐이었습니다. 특히 AI가 만든 코드나 계산이 틀린 3건은 결과를 직접 열어 보고 찾았습니다. 예를 들어 시간순 점수 0.246은 3개 유형만으로 평균한 값이라, 7개 기준으로 다시 계산하니 0.138이었습니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>부록 · AI 사용</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in" style="--i:0"><span>+</span>AI를 어떻게 썼나</div>
+  <h2 class="in" style="--i:1">AI 조언 11건 중 <em>2건만 채택</em> — 틀린 계산 3건은 결과를 직접 열어 찾았다</h2>
+  <div class="body" style="flex-direction:column;gap:30px">
+    <div class="card in" style="--i:2;padding:26px 34px">
+      <div class="lbl">Claude(Claude Code)로 코드 작성 · 실험 설계 · 결과 요약 → 조언마다 같은 시험으로 다시 재서 판정 (기준: 평균 +0.01 이상 · 대부분 승리)</div>
+      <div style="display:flex;height:64px;border-radius:14px;overflow:hidden;font-size:24px;font-weight:800;color:#fff;margin-top:8px">
+        <div class="ai-seg" style="--i:3;flex:2;background:var(--acc)">채택 2</div>
+        <div class="ai-seg" style="--i:4;flex:6;background:var(--gray);color:var(--ink)">기각 6 · 이 데이터에선 효과 없음</div>
+        <div class="ai-seg" style="--i:5;flex:3;background:var(--bad)">AI 오류 발견 3</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;flex:1">
+      <div class="card in" style="--i:6">
+        <span class="tag no" style="font-size:20px">오류 발견</span>
+        <div class="t" style="margin-top:18px;font-size:32px"><b>시간순 점수 0.246</b></div>
+        <div class="s" style="font-size:25px;margin-top:10px">3개 유형만으로 평균한 값 → 7개 기준으로 다시 계산하니 <b class="bad">0.138</b></div>
+      </div>
+      <div class="card in" style="--i:7">
+        <span class="tag no" style="font-size:20px">오류 발견</span>
+        <div class="t" style="margin-top:18px;font-size:32px"><b>가중치 적용 0.58</b></div>
+        <div class="s" style="font-size:25px;margin-top:10px">가중치를 고른 데이터로 그대로 채점한 값 → 중첩 검증으로 다시 재니 <b class="bad">0.546</b></div>
+      </div>
+      <div class="card in" style="--i:8">
+        <span class="tag" style="font-size:20px">채택</span>
+        <div class="t" style="margin-top:18px;font-size:32px"><b>같은 기록끼리 묶어 시험</b></div>
+        <div class="s" style="font-size:25px;margin-top:10px">무작위 0.562 vs 묶기 <b class="acc">0.268</b> → 리더보드 점수의 큰 부분이 중복 기록 덕분임을 확인</div>
+      </div>
+    </div>
+    <div class="s in" style="--i:9">기각 예: 불량 샘플 늘리기(SMOTE) −0.010 ~ −0.023 · 판정 기준 옮기기 모두 하락 · 변수 51개 조합 −0.006 · 그 밖의 오류: MLP 조기 종료 구간을 잘못 뗀 코드</div>
+  </div>
+</section>
+
+<section class="slide cover" data-notes="질문 받겠습니다.">
+  <div class="top"><span><b>3조</b> · 최종 발표</span><span class="tr"><span>Q&amp;A</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <h1 class="in" style="--i:0;font-size:150px">Q &amp; A</h1>
+  <div class="sub in" style="--i:1">리더보드 0.589는 '이미 본 샷' 조건 · 현장에서는 검사 순서를 돕는 보조 도구로 시작</div>
+  <div class="who in" style="--i:2">3조 · 강동하 · 구정희 · 이지수 · 이창우</div>
+</section>
+
+<div class="prog"><i id="prog"></i></div>
+<div class="pageno" id="pageno"></div>
+</div></div>
+<div class="notes" id="notes"></div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+
+  // KNN 작동 방식 그림 (예시 배치)
+  (() => {
+    const svg = document.getElementById("knnfig");
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const cx = 300, cy = 225, R = 128;
+    const col = { s: "#0F6B5A", n: "#B9C4C0", b: "#16201D" };
+    const inner = ["s","s","s","s","s","s","s","s","s","s","n","n","n","n","b"];
+    const pts = [];
+    inner.forEach((k, i) => {
+      const a = (i / inner.length) * Math.PI * 2 + rnd() * .35, r = 38 + rnd() * (R - 52);
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r, k, true]);
+    });
+    const outerKinds = ["n","n","n","n","n","n","b","b","b","s","n","n","b","n","n","s","n","b","n","n","n","b","n","n","n","s"];
+    outerKinds.forEach(k => {
+      let x, y, d;
+      do { x = 30 + rnd() * 540; y = 22 + rnd() * 370; d = Math.hypot(x - cx, y - cy); } while (d < R + 22);
+      pts.push([x, y, k, false]);
+    });
+    const ring = el("circle", { cx, cy, r: R, fill: "rgba(15,107,90,.08)", stroke: "#0F6B5A", "stroke-width": 3, "stroke-dasharray": "8 7", class: "kring" }, svg);
+    pts.forEach(([x, y, k, inn], i) => {
+      const g = el("g", { class: "kdot", style: `--d:${i * 22}ms` }, svg);
+      if (k === "b") el("rect", { x: x - 9, y: y - 9, width: 18, height: 18, rx: 3, fill: col[k], opacity: inn ? 1 : .55 }, g);
+      else el("circle", { cx: x, cy: y, r: 10, fill: col[k], opacity: inn ? 1 : .55 }, g);
+      if (inn) el("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: "#0F6B5A", "stroke-width": 1.4, opacity: .45, class: "kline", style: `--d:${900 + i * 40}ms` }, svg);
+    });
+    el("path", { d: "M300 203 l6.5 13.2 14.5 2.1 -10.5 10.3 2.5 14.5 -13 -6.9 -13 6.9 2.5 -14.5 -10.5 -10.3 14.5 -2.1z", fill: "#16201D", class: "kstar" }, svg);
+    const lg = el("g", {}, svg);
+    [["미충전 10", col.s, 0], ["정상 4", col.n, 150], ["기공 1", col.b, 270]].forEach(([t, c, dx]) => {
+      el("circle", { cx: 40 + dx, cy: 452, r: 10, fill: c }, lg);
+      el("text", { x: 58 + dx, y: 460, "font-size": 23, fill: "#16201D", "font-weight": 700 }, lg, t);
+    });
+    el("text", { x: 580, y: 460, "text-anchor": "end", "font-size": 23, fill: "#0F6B5A", "font-weight": 800 }, lg, "→ 미충전");
+    const st = document.createElement("style");
+    st.textContent = `.kdot{opacity:0}.slide.active .kdot{animation:pop .4s ease both;animation-delay:calc(var(--d) + 300ms)}
+      .kring{opacity:0;transform-origin:300px 225px}.slide.active .kring{animation:ring .8s cubic-bezier(.2,.7,.2,1) both;animation-delay:1.2s}
+      @keyframes ring{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
+      .kline{opacity:0}.slide.active .kline{animation:fadeL .4s ease both;animation-delay:calc(var(--d) + 900ms)}
+      @keyframes fadeL{to{opacity:.45}}
+      .kstar{opacity:0;transform-origin:300px 225px}.slide.active .kstar{animation:pop .5s cubic-bezier(.3,1.6,.5,1) both;animation-delay:.9s}
+      @media print{.kdot,.kring,.kline,.kstar{opacity:1!important;animation:none!important}}`;
+    document.head.appendChild(st);
+  })();
+
+  // 채택 기준 산점도
+  (() => {
+    const svg = document.getElementById("scatter");
+    const X0 = 90, X1 = 830, Y0 = 450, Y1 = 30;
+    const xs = v => X0 + (v + 0.012) / 0.027 * (X1 - X0);
+    const ys = v => Y0 - v / 15 * (Y0 - Y1);
+    el("rect", { x: xs(0.01), y: ys(15), width: X1 - xs(0.01), height: ys(12) - ys(15), fill: "#D3EAE2", class: "zone" }, svg);
+    el("text", { x: X1 - 12, y: ys(15) + 34, "text-anchor": "end", "font-size": 22, "font-weight": 800, fill: "#0B4F43" }, svg, "확실히 이김");
+    el("text", { x: X1 - 12, y: ys(15) + 60, "text-anchor": "end", "font-size": 18, fill: "#0B4F43" }, svg, "+0.01 이상 · 12번 이상");
+    for (let v = 0; v <= 15; v += 3) {
+      el("line", { x1: X0, x2: X1, y1: ys(v), y2: ys(v), stroke: "#DCE3DF" }, svg);
+      el("text", { x: X0 - 14, y: ys(v) + 7, "text-anchor": "end", "font-size": 18, fill: "#8A9792" }, svg, v);
+    }
+    [-0.01, -0.005, 0, 0.005, 0.01, 0.015].forEach(v => {
+      el("text", { x: xs(v), y: Y0 + 30, "text-anchor": "middle", "font-size": 18, fill: "#8A9792" }, svg, (v > 0 ? "+" : "") + v.toFixed(3).replace(/0+$/, "").replace(/\.$/, ""));
+    });
+    el("line", { x1: xs(0), x2: xs(0), y1: Y1, y2: Y0, stroke: "#5B6964", "stroke-width": 2 }, svg);
+    el("text", { x: xs(0) + 8, y: Y1 + 18, "font-size": 18, fill: "#5B6964", "font-weight": 700 }, svg, "KNN과 같음");
+    el("line", { x1: xs(0.01), x2: xs(0.01), y1: Y1, y2: Y0, stroke: "#0F6B5A", "stroke-width": 2, "stroke-dasharray": "6 6" }, svg);
+    el("line", { x1: X0, x2: X1, y1: ys(12), y2: ys(12), stroke: "#0F6B5A", "stroke-width": 2, "stroke-dasharray": "6 6" }, svg);
+    el("text", { x: (X0 + X1) / 2, y: Y0 + 62, "text-anchor": "middle", "font-size": 20, fill: "#5B6964", "font-weight": 700 }, svg, "KNN 대비 평균 차이 (macro F1)");
+    el("text", { x: 22, y: (Y0 + Y1) / 2, "font-size": 20, fill: "#5B6964", "font-weight": 700, transform: `rotate(-90 22 ${(Y0 + Y1) / 2})`, "text-anchor": "middle" }, svg, "15번 중 이긴 횟수");
+    const P = [
+      ["KNN+RF+XGB 앙상블", 0.0023, 11, "end", -18, -16],
+      ["파생 변수 4개 추가", 0.0035, 10, "end", -18, 34],
+      ["제품별 KNN", -0.0008, 4, "start", 18, 8],
+      ["RF (가장 나은 설정)", -0.007, 6, "start", 18, 8]
+    ];
+    P.forEach(([t, x, y, anc, dx, dy], i) => {
+      const g = el("g", { class: "sp", style: `--d:${600 + i * 220}ms` }, svg);
+      el("circle", { cx: xs(x), cy: ys(y), r: 13, fill: "#C2453A", stroke: "#fff", "stroke-width": 3 }, g);
+      el("text", { x: xs(x) + dx, y: ys(y) + dy, "text-anchor": anc, "font-size": 21, "font-weight": 700, fill: "#16201D" }, g, `${t} (${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x)} · ${y})`);
+    });
+    const st = document.createElement("style");
+    st.textContent = `#scatter text{paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round}.sp{opacity:0}.slide.active .sp{animation:rise .6s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d)}
+      .zone{opacity:0}.slide.active .zone{animation:fadeZ .8s ease both;animation-delay:.4s}@keyframes fadeZ{to{opacity:1}}
+      @media print{.sp,.zone{opacity:1!important;animation:none!important}}`;
+    document.head.appendChild(st);
+  })();
+
+  // 혼동행렬 · 클래스별 지표 (5-fold 시드 7 · 최종 KNN)
+  (() => {
+    const L = ["정상", "미충전", "기공", "박리", "얼룩", "변형", "기타"];
+    const E = ["Normal", "Short_Shot", "Blow_Hole", "Exfoliation", "Stain", "Deformation", "기타불량"];
+    const M = [
+      [3972, 45, 23, 23, 6, 18, 5],
+      [215, 240, 2, 8, 2, 1, 1],
+      [87, 2, 144, 0, 0, 0, 0],
+      [112, 4, 0, 75, 0, 6, 1],
+      [25, 6, 0, 0, 69, 0, 0],
+      [78, 0, 0, 2, 0, 26, 0],
+      [65, 1, 0, 0, 0, 0, 10]
+    ];
+    const cm = document.getElementById("cm");
+    const add = (cls, txt, style) => { const d = document.createElement("div"); d.className = cls; d.textContent = txt; if (style) d.style.cssText = style; cm.appendChild(d); return d; };
+    add("h", "실제 \\ 예측");
+    L.forEach((l, i) => { const d = add("h", ""); d.innerHTML = `<span class="ek" style="text-align:center;font-size:16px"><span>${E[i]}</span><small style="font-size:17px">${l}</small></span>`; });
+    M.forEach((row, i) => {
+      const tot = row.reduce((a, b) => a + b, 0);
+      const rh = add("rh", ""); rh.innerHTML = `<span class="ek" style="font-size:18px"><span>${E[i]}</span><small style="font-size:18px">${L[i]}</small></span>`;
+      row.forEach((v, j) => {
+        const r = v / tot;
+        let bg, fg = "#16201D";
+        if (i === j) { bg = `rgba(15,107,90,${0.12 + r * 0.88})`; if (r > .45) fg = "#fff"; }
+        else if (j === 0) { bg = `rgba(194,69,58,${0.08 + r * 0.92})`; if (r > .45) fg = "#fff"; }
+        else { bg = v ? `rgba(91,105,100,${0.10 + r * 2.5})` : "#F4F6F3"; if (!v) fg = "#B8C2BE"; }
+        const d = add("in", v.toLocaleString(), `background:${bg};color:${fg};--i:${3 + i * 0.5}`);
+      });
+    });
+    add("", "");
+    add("cm-note bad", "↑ 놓침 582", "grid-column:span 1");
+    add("cm-note", "대각선 맞힘 564 · 다른 불량으로 착각 36", "grid-column:span 6;justify-items:start;padding-left:10px");
+    const t = document.getElementById("prf");
+    t.innerHTML = "<tr><th>유형</th><th>정밀도</th><th>재현율</th><th style='width:44%'>F1</th></tr>";
+    const colors = ["#B9C4C0", "#0F6B5A", "#0F6B5A", "#0F6B5A", "#0F6B5A", "#0F6B5A", "#0F6B5A"];
+    let sum = 0;
+    L.forEach((l, i) => {
+      const tp = M[i][i], act = M[i].reduce((a, b) => a + b, 0), pred = M.reduce((a, r) => a + r[i], 0);
+      const p = tp / pred, r = tp / act, f = 2 * p * r / (p + r);
+      sum += f;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><span class="ek" style="font-size:20px"><b>${E[i]}</b><small>${l}</small></span></td><td class="n">${p.toFixed(2)}</td><td class="n">${r.toFixed(2)}</td>
+        <td><div style="display:flex;align-items:center;gap:12px"><div class="bar" style="flex:1;--h:22px;--i:${4 + i * .4}"><i style="--w:${(f * 100).toFixed(1)}%;--c:${colors[i]}"></i></div><b class="n" style="width:56px">${f.toFixed(2)}</b></div></td>`;
+      t.appendChild(tr);
+    });
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><b class="acc">macro 평균</b></td><td></td><td></td><td style="text-align:right"><b class="acc" style="font-size:28px">${(sum / 7).toFixed(4)}</b></td>`;
+    t.appendChild(tr);
+  })();
+
+  // 리더보드 제출 이력
+  (() => {
+    const D = [
+      ["1회차", "10/21", 0.5158, ""],
+      ["2회차", "10/22", 0.5822, "RF+ET+XGB 앙상블"],
+      ["3회차", "10/22", 0.5890, "KNN · 최종"],
+      ["4회차", "10/26", 0.5768, "ExtraTrees"],
+      ["5회차", "10/26", 0.5643, "RF v2 (불량 더 잡기)"],
+      ["6회차", "10/26", 0.5858, "KNN+RF+XGB 앙상블"],
+      ["7회차", "10/27", 0.5465, "PLR MLP + 파생 변수 4개"]
+    ];
+    const box = document.getElementById("lb");
+    D.forEach(([n, d, v, m], i) => {
+      const fin = v === 0.5890;
+      const c = document.createElement("div");
+      c.style.cssText = "flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px";
+      c.innerHTML = `<b class="mid" style="font-size:30px;color:${fin ? "var(--acc)" : "var(--ink)"}">${v.toFixed(4)}</b>
+        <div class="vbar" style="--i:${3 + i};--bw:100%;height:${360}px"><i style="--w:${(v / 0.6 * 100).toFixed(1)}%;--c:${fin ? "var(--acc)" : "#B7C6C0"}"></i></div>
+        <div style="text-align:center;line-height:1.3"><div class="t" style="font-size:24px;font-weight:700">${n}</div><div class="xs">${d}</div><div class="xs" style="height:52px;color:${fin ? "var(--acc)" : "var(--mute)"};font-weight:${fin ? 800 : 500}">${m}</div></div>`;
+      box.appendChild(c);
+    });
+  })();
+
+  // 하루 비용
+  (() => {
+    const D = [
+      ["배율 1.0 (제출)", 1907, "놓침 176 · 헛경보 147"],
+      ["배율 0.5", 1561, "놓침 122 · 헛경보 341"],
+      ["배율 0.3", 1314, "놓침 84 · 헛경보 474"],
+      ["배율 0.15", 1033, "놓침 40 · 헛경보 633"],
+      ["검사 안 함", 2190, "놓침 219"],
+      ["전수 검사", 781, "헛경보 781"]
+    ];
+    const box = document.getElementById("cost");
+    D.forEach(([n, v, s], i) => {
+      const best = v === 781;
+      box.insertAdjacentHTML("beforeend", `<span style="line-height:1.25">${best ? "<b class='acc'>" + n + "</b>" : n}<br><span class="xs">${s}</span></span>
+        <div class="bar" style="--i:${3 + i};--h:40px"><i style="--w:${(v / 2190 * 100).toFixed(1)}%;--c:${best ? "var(--acc)" : "var(--gray)"}"></i></div>
+        <b class="n" style="text-align:right;font-size:28px;color:${best ? "var(--acc)" : "var(--ink)"}">${v.toLocaleString()}</b>`);
+    });
+  })();
+
+  // 데이터양 곡선
+  (() => {
+    const svg = document.getElementById("curve");
+    const X0 = 80, X1 = 730, Y0 = 400, Y1 = 30;
+    const F = [20, 40, 60, 80, 100];
+    const xs = f => X0 + (f - 20) / 80 * (X1 - X0);
+    const ys = v => Y0 - v / 0.6 * (Y0 - Y1);
+    [0, 0.2, 0.4, 0.6].forEach(v => {
+      el("line", { x1: X0, x2: X1, y1: ys(v), y2: ys(v), stroke: "#DCE3DF" }, svg);
+      el("text", { x: X0 - 12, y: ys(v) + 7, "text-anchor": "end", "font-size": 18, fill: "#8A9792" }, svg, v.toFixed(1));
+    });
+    F.forEach(f => el("text", { x: xs(f), y: Y0 + 32, "text-anchor": "middle", "font-size": 19, fill: "#8A9792" }, svg, f + "%"));
+    el("text", { x: (X0 + X1) / 2, y: Y0 + 64, "text-anchor": "middle", "font-size": 19, fill: "#5B6964", "font-weight": 700 }, svg, "학습에 쓴 데이터 비율");
+    const S = [
+      ["무작위", [0.328, 0.371, 0.408, 0.499, 0.568], "#0F6B5A", ""],
+      ["시간순", [0.136, 0.135, 0.126, 0.134, 0.141], "#8A9792", "8 7"]
+    ];
+    S.forEach(([n, vals, c, dash], si) => {
+      const d = vals.map((v, i) => (i ? "L" : "M") + xs(F[i]) + " " + ys(v)).join(" ");
+      const p = el("path", { d, fill: "none", stroke: c, "stroke-width": 5, "stroke-linecap": "round", "stroke-linejoin": "round", class: "cline", style: `--d:${400 + si * 500}ms` }, svg);
+      if (dash) p.setAttribute("data-dash", dash);
+      vals.forEach((v, i) => {
+        const g = el("g", { class: "cpt", style: `--d:${700 + si * 500 + i * 120}ms` }, svg);
+        el("circle", { cx: xs(F[i]), cy: ys(v), r: 8, fill: "#fff", stroke: c, "stroke-width": 4 }, g);
+        if (i === 0 || i === 4) el("text", { x: xs(F[i]) + (i ? -6 : 6), y: ys(v) - 18, "text-anchor": i ? "end" : "start", "font-size": 22, "font-weight": 800, fill: c }, g, v.toFixed(3));
+      });
+      el("text", { x: X1 + 4, y: ys(vals[4]) + (si ? 36 : -36), "text-anchor": "end", "font-size": 22, "font-weight": 800, fill: c, class: "cpt", style: `--d:${1300 + si * 500}ms` }, svg, n);
+    });
+    svg.querySelectorAll(".cline").forEach(p => { const L = p.getTotalLength ? 1200 : 1200; p.style.strokeDasharray = L; p.style.strokeDashoffset = L; });
+    const st = document.createElement("style");
+    st.textContent = `.slide.active .cline{animation:draw 1.2s ease forwards;animation-delay:var(--d)}@keyframes draw{to{stroke-dashoffset:0}}
+      .cpt{opacity:0}.slide.active .cpt{animation:pop .4s ease both;animation-delay:var(--d)}
+      @media print{.cline{stroke-dashoffset:0!important}.cpt{opacity:1!important;animation:none!important}}`;
+    document.head.appendChild(st);
+  })();
+
+  // 데이터 양에 따른 모델별 성능 (보고서 5장 표)
+  (() => {
+    const F = [20, 40, 60, 80, 100];
+    const draw = (id, series, labDy) => {
+      const svg = document.getElementById(id);
+      const X0 = 78, X1 = 600, Y0 = 400, Y1 = 30;
+      const xs = f => X0 + (f - 20) / 80 * (X1 - X0);
+      const ys = v => Y0 - v / 0.6 * (Y0 - Y1);
+      [0, 0.2, 0.4, 0.6].forEach(v => {
+        el("line", { x1: X0, x2: X1, y1: ys(v), y2: ys(v), stroke: "#DCE3DF" }, svg);
+        el("text", { x: X0 - 12, y: ys(v) + 7, "text-anchor": "end", "font-size": 19, fill: "#8A9792" }, svg, v.toFixed(1));
+      });
+      F.forEach(f => el("text", { x: xs(f), y: Y0 + 32, "text-anchor": "middle", "font-size": 19, fill: "#8A9792" }, svg, f + "%"));
+      el("text", { x: (X0 + X1) / 2, y: Y0 + 64, "text-anchor": "middle", "font-size": 19, fill: "#5B6964", "font-weight": 700 }, svg, "학습에 쓴 데이터 비율");
+      series.forEach(([n, vals, c, w], si) => {
+        const d = vals.map((v, i) => (i ? "L" : "M") + xs(F[i]) + " " + ys(v)).join(" ");
+        const p = el("path", { d, fill: "none", stroke: c, "stroke-width": w, "stroke-linecap": "round", "stroke-linejoin": "round", class: "cline", style: `--d:${400 + si * 350}ms` }, svg);
+        p.style.strokeDasharray = 1400; p.style.strokeDashoffset = 1400;
+        vals.forEach((v, i) => {
+          const g = el("g", { class: "cpt", style: `--d:${600 + si * 350 + i * 100}ms` }, svg);
+          el("circle", { cx: xs(F[i]), cy: ys(v), r: w > 4 ? 8 : 6, fill: "#fff", stroke: c, "stroke-width": w > 4 ? 4 : 3 }, g);
+        });
+        const g = el("g", { class: "cpt", style: `--d:${1200 + si * 350}ms` }, svg);
+        el("text", { x: X1 + 18, y: ys(vals[4]) + 7 + labDy[si], "font-size": 21, "font-weight": 800, fill: c }, g, `${n} ${vals[4].toFixed(3)}`);
+      });
+    };
+    draw("dcR", [
+      ["KNN", [0.328, 0.371, 0.408, 0.499, 0.568], "#0F6B5A", 6],
+      ["RF", [0.302, 0.365, 0.401, 0.476, 0.554], "#6FA597", 4],
+      ["MLP", [0.206, 0.221, 0.225, 0.230, 0.195], "#9AA7A2", 4]
+    ], [-12, 16, 0]);
+    draw("dcT", [
+      ["KNN", [0.136, 0.135, 0.126, 0.134, 0.141], "#0F6B5A", 6],
+      ["RF", [0.126, 0.127, 0.127, 0.125, 0.124], "#6FA597", 4],
+      ["MLP", [0.033, 0.047, 0.069, 0.090, 0.056], "#9AA7A2", 4]
+    ], [-16, 16, 0]);
+  })();
+
+  // 표지 공정 시뮬레이션 — 결과 페이지(시각화/index.html) 공정 그림과 움직임을 옮김
+  // 샷 = test 샷 shot_id 순(결과 페이지 시작 위치 shot 381부터 240샷) [shot_id, 제품, 용탕로 온도, 주조압, 사이클, 최종 KNN 예측 코드]
+  (() => {
+    const SH = [[381,1,702.1,1053,20.9,0],[386,1,704.0,1036,20.8,1],[388,1,704.0,1038,21.0,6],[397,1,705.0,1040,20.9,0],[403,1,706.0,1054,20.9,0],[405,1,706.0,1052,20.8,0],[407,1,706.1,1052,20.9,0],[409,1,707.0,1052,20.8,0],[411,1,707.0,1039,20.9,0],[415,1,707.0,1053,20.9,0],[419,1,707.0,1051,20.9,3],[422,1,707.0,1038,20.8,0],[424,1,707.0,1037,20.9,0],[427,1,707.0,1053,20.9,0],[431,1,706.6,1053,20.9,0],[432,1,706.1,1037,20.9,0],[433,1,706.1,1051,20.9,1],[436,1,706.0,1038,20.8,0],[437,1,706.0,1052,20.8,1],[439,1,706.0,1037,20.9,0],[440,1,706.0,1051,20.9,0],[447,1,705.0,1037,21.0,6],[449,1,705.0,1053,20.9,0],[450,1,705.0,1038,20.8,6],[452,1,704.6,1055,20.9,0],[457,1,704.0,1037,20.9,0],[459,1,703.6,1038,20.7,0],[470,1,698.7,1053,20.9,0],[476,1,695.3,1055,20.7,0],[478,1,693.5,1051,20.9,0],[481,1,691.6,1037,20.9,0],[482,1,691.6,1053,20.8,0],[487,1,688.4,1036,20.8,5],[494,1,684.8,1051,20.8,3],[497,1,683.5,1038,20.8,5],[502,1,681.3,1053,20.9,0],[505,1,680.4,1053,20.9,5],[506,1,680.4,1038,20.9,3],[508,1,680.0,1051,20.9,5],[509,1,680.2,1036,20.9,5],[524,1,684.1,1050,20.9,5],[530,1,685.9,1054,20.9,5],[532,1,686.6,1051,20.8,5],[541,1,689.0,1052,20.8,0],[546,1,690.0,1052,20.9,5],[547,1,690.9,1038,21.0,0],[559,1,694.8,1055,20.9,0],[562,1,695.7,1053,20.9,0],[567,1,697.7,1054,20.9,0],[580,1,702.1,1051,20.8,0],[581,1,703.1,1053,20.8,0],[582,1,703.1,1038,20.9,0],[583,1,703.1,1053,20.8,0],[584,1,704.1,1037,20.9,0],[592,1,706.0,1052,20.9,0],[595,1,707.5,1054,20.9,0],[598,1,708.3,1055,20.9,0],[603,1,709.1,1054,20.9,0],[606,1,710.0,1049,21.0,0],[607,1,710.8,1053,21.0,0],[608,1,710.8,1055,20.8,0],[610,1,711.7,1046,20.7,0],[611,1,711.7,1049,20.8,0],[613,1,712.3,1054,20.9,0],[614,1,712.3,1056,20.9,0],[615,1,712.3,1040,20.8,0],[620,1,713.7,1053,20.8,0],[621,1,714.0,1053,20.8,0],[626,1,714.0,1053,20.8,0],[628,1,714.0,1053,20.8,0],[632,1,714.0,1052,20.8,0],[639,1,710.8,1039,20.9,0],[644,1,707.3,1052,20.8,0],[645,1,707.3,1039,20.8,6],[652,1,703.3,1052,20.8,0],[653,1,701.2,1054,20.8,0],[656,1,699.1,1037,20.9,0],[658,1,699.1,1036,20.8,0],[660,1,697.1,1037,20.7,0],[661,1,697.1,1054,20.8,0],[666,1,693.2,1037,20.7,0],[668,1,691.4,1038,20.7,0],[670,1,689.5,1037,20.8,0],[672,1,689.5,1038,20.8,0],[674,1,687.8,1038,20.9,0],[676,1,686.5,1038,20.8,0],[681,1,685.0,1055,20.8,0],[683,1,683.7,1053,20.8,0],[689,1,680.3,1055,20.8,0],[693,1,678.3,1053,20.8,0],[694,1,678.3,1039,20.8,0],[695,1,678.3,1052,20.8,0],[699,1,677.0,1038,20.8,0],[704,1,676.0,1055,20.6,0],[709,1,677.0,1055,20.7,0],[713,1,678.8,1038,20.8,0],[714,1,678.8,1055,20.7,0],[715,1,678.8,1039,20.8,0],[718,1,679.9,1054,20.8,0],[726,1,684.6,1053,20.8,0],[733,1,687.6,1056,20.9,0],[735,1,688.8,1053,20.8,0],[736,1,689.8,1053,20.8,0],[738,1,689.8,1039,20.8,0],[740,1,690.8,1055,20.8,0],[742,1,691.7,1052,20.8,0],[744,1,693.1,1054,20.8,6],[748,1,694.9,1053,20.8,0],[752,1,696.8,1040,20.9,0],[757,1,699.1,1036,20.9,0],[763,1,701.5,1052,21.0,0],[766,1,702.8,1052,21.0,0],[771,1,703.7,1040,20.9,0],[774,1,704.5,1037,20.8,3],[779,1,706.0,1038,20.9,0],[792,1,708.9,1051,20.8,0],[793,1,708.9,1054,20.8,0],[804,1,709.0,1052,20.8,0],[816,1,706.2,1036,20.8,0],[823,1,703.2,1054,20.9,0],[829,1,700.4,1038,20.8,0],[832,1,698.6,1040,20.7,0],[833,1,698.6,1052,20.8,0],[834,1,698.6,1054,20.8,0],[835,1,697.1,1039,20.8,0],[837,1,697.1,1054,20.8,0],[838,1,695.6,1056,20.9,0],[839,1,695.6,1041,20.8,0],[843,1,694.3,1055,20.9,0],[844,1,692.7,1039,20.7,0],[847,1,691.5,1053,20.8,0],[861,1,685.6,1051,20.9,6],[865,1,685.0,1053,20.9,0],[870,1,684.6,1053,20.9,0],[871,1,684.6,1055,20.8,0],[872,1,685.0,1040,20.9,0],[874,1,685.0,1039,20.8,0],[875,1,685.1,1053,20.9,0],[877,1,685.1,1040,20.7,0],[881,1,686.7,1055,20.8,0],[882,1,686.7,1040,20.9,0],[888,1,688.7,1054,20.8,0],[891,1,689.5,1053,20.9,0],[893,1,690.5,1040,20.9,0],[899,1,692.3,1055,20.9,5],[902,1,693.2,1056,20.9,0],[904,1,694.1,1053,20.9,0],[920,1,698.0,1041,20.9,0],[923,1,698.6,1037,20.8,0],[927,1,698.3,1038,20.8,0],[928,1,698.3,1038,20.8,0],[930,1,698.5,1055,20.9,0],[939,1,699.0,1040,21.0,0],[940,1,699.0,1052,20.8,0],[946,1,699.5,1038,20.8,0],[947,1,700.0,1053,20.8,0],[950,1,700.0,1054,20.7,0],[952,1,700.0,1041,20.7,0],[954,1,699.4,1055,20.9,0],[955,1,699.4,1040,20.9,0],[960,1,699.3,1055,20.8,0],[965,1,700.0,1053,20.8,0],[966,1,700.0,1053,20.8,0],[967,1,700.6,1053,20.8,0],[968,1,700.6,1052,20.9,0],[970,1,701.2,1056,20.8,0],[972,1,701.2,1053,20.9,0],[975,1,702.0,1054,20.9,0],[977,1,702.6,1053,20.9,0],[989,1,704.0,1040,20.9,1],[997,1,704.0,1038,20.9,0],[999,1,703.5,1038,20.9,0],[1001,1,703.0,1055,20.9,0],[1003,1,703.0,1053,20.8,0],[1009,1,702.2,1054,20.8,0],[1011,1,702.0,1053,20.9,0],[1023,1,701.4,1039,20.8,0],[1025,1,701.5,1038,20.7,0],[1026,1,701.5,1053,20.8,0],[1028,1,701.8,1040,20.9,0],[1029,1,701.8,1040,20.9,0],[1033,1,702.0,1053,20.9,0],[1035,1,702.0,1053,20.9,0],[1040,1,702.3,1053,20.9,0],[1041,1,702.3,1055,20.8,0],[1047,1,704.0,1053,21.0,0],[1048,1,704.0,1054,20.9,0],[1051,1,704.0,1038,20.8,0],[1053,1,705.0,1054,20.9,0],[1059,1,705.0,1040,20.9,1],[1065,1,704.0,1039,20.8,0],[1066,1,704.0,1051,20.9,0],[1068,1,703.7,1052,20.9,0],[1070,1,703.0,1057,20.9,0],[1074,1,703.0,1039,20.9,0],[1077,1,703.0,1041,20.9,0],[1080,1,702.2,1040,20.8,0],[1082,1,702.0,1054,21.0,5],[1086,1,701.9,1055,20.9,0],[1097,1,698.4,1055,20.9,0],[1099,1,697.4,1055,20.8,0],[1101,1,700.4,1054,20.9,0],[1103,1,702.1,1055,21.0,1],[1106,1,702.1,1054,21.0,1],[1110,1,703.9,1054,20.9,0],[1115,1,705.5,1054,20.8,0],[1117,1,705.5,1039,21.0,0],[1122,1,707.5,1055,20.9,0],[1123,1,707.5,1055,20.9,0],[1127,1,709.4,1055,21.0,0],[1133,1,711.3,1039,21.0,0],[1134,1,711.3,1056,20.9,0],[1135,1,711.3,1056,20.9,0],[1138,1,712.9,1056,20.9,0],[1147,1,714.8,1056,20.9,1],[1149,1,716.6,1040,20.9,0],[1155,1,718.4,1056,20.9,3],[1156,1,718.4,1040,20.9,3],[1160,1,720.2,1040,20.9,3],[1164,1,721.9,1053,21.1,3],[1166,1,721.9,1040,20.8,3],[1167,1,721.9,1040,20.8,3],[1168,1,721.9,1040,20.8,3],[1169,1,721.9,1040,20.8,3],[1177,1,725.0,1039,21.0,1],[1181,1,725.0,1040,21.1,0],[1185,1,726.3,1040,20.9,1],[1190,1,727.5,1054,20.9,3],[1199,1,729.0,1055,20.9,3],[1200,1,729.0,1055,20.9,3],[1206,1,729.8,1055,20.9,3],[1208,1,729.8,1055,20.9,3],[1223,1,729.4,1053,20.9,0],[1225,1,729.4,1054,20.8,0],[1226,1,729.4,1039,20.9,0],[1227,1,729.4,1039,20.9,0],[1230,1,729.0,1054,20.9,0],[1233,1,729.0,1038,20.9,0],[1236,1,728.1,1038,20.9,0],[1238,1,728.1,1038,20.9,0]];
+    const TYPES = ["정상", "미충전", "기공", "박리", "얼룩", "변형", "기타"];
+    const NS = "http://www.w3.org/2000/svg";
+    const S = id => document.getElementById("s_" + id);
+    const at = (e, o) => { for (const k in o) e.setAttribute(k, o[k]); };
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    const P = { pour: [0, 700], inject: [700, 1100], cool: [1100, 1600], open: [1600, 1900], convey: [1900, 2550], branch: [2550, 2950], drop: [2950, 3200] }, T = 3200, GATE = 660;
+    const seg = (t, [a, b]) => Math.min(1, Math.max(0, (t - a) / (b - a)));
+    const ease = x => x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+    const lerp = (a, b, q) => a + (b - a) * q;
+    const dur = s => clamp(s[4] / 22.6, .85, 1.75);
+    const fmt = v => v.toLocaleString();
+    let i = 0, t = 0, judged = false, okL = 0, ngL = 0;
+    const setShot = s => {
+      S("hShot").textContent = `SHOT #${s[0]} · 제품 ${s[1]}`;
+      S("vMelt").textContent = `${s[2].toFixed(1)}°C`; S("vCast").textContent = fmt(s[3]);
+      S("bubble").setAttribute("opacity", 0); S("ptag").setAttribute("opacity", 0);
+      at(S("lampG"), { fill: "#3DBE77" }); at(S("lampO"), { fill: "#E5ECE9" });
+    };
+    const judge = s => {
+      const p = s[5];
+      S("bubbleTx").textContent = p ? `${TYPES[p]} → 검사` : "정상 → 양품";
+      at(S("bubbleBg"), { fill: p ? "#EF7A3B" : "#3DBE77" }); S("bubble").setAttribute("opacity", 1);
+      if (p) { at(S("lampO"), { fill: "#EF7A3B" }); at(S("lampG"), { fill: "#E5ECE9" }); }
+      at(S("ptagBg"), { fill: p ? "#FDEDE3" : "#E3F5EB" }); at(S("ptagTx"), { fill: p ? "#B4521C" : "#1E7A4A" }); S("ptagTx").textContent = TYPES[p];
+    };
+    const land = s => {
+      if (okL + ngL >= 48) { okL = ngL = 0; S("stackOk").replaceChildren(); S("stackNg").replaceChildren(); }
+      const k = s[5] ? ngL++ : okL++, x0 = s[5] ? 831 : 759;
+      const r = document.createElementNS(NS, "rect");
+      at(r, { x: x0 + (k % 8) * 7, y: 276 - Math.floor(k / 8) * 5, width: 6, height: 4, rx: 1, fill: s[5] ? "#EF7A3B" : "#3DBE77", class: "s-blk" });
+      S(s[5] ? "stackNg" : "stackOk").appendChild(r);
+      S("binOk").textContent = `양품 ${okL}`; S("binNg").textContent = `검사 ${ngL}`;
+    };
+    const draw = (t, s) => {
+      const ph = t < P.inject[0] ? 0 : t < P.cool[0] ? 1 : t < P.open[0] ? 2 : t < P.convey[0] + 300 ? 3 : 4;
+      [...S("steps").children].forEach((x, j) => x.classList.toggle("on", j === ph));
+      const p = seg(t, P.pour); let lx, ly, rot = 0, pour = 0;
+      if (p < .35) { const q = ease(p / .35); lx = lerp(70, 215, q); ly = lerp(138, 176, q) - 50 * Math.sin(Math.PI * q); }
+      else if (p < .75) { const q = (p - .35) / .4; lx = 215; ly = 176; rot = -55 * Math.sin(Math.PI * Math.min(1, q * 1.4)); pour = q < .85 ? 1 : 0; }
+      else { const q = ease((p - .75) / .25); lx = lerp(215, 70, q); ly = lerp(176, 138, q) - 50 * Math.sin(Math.PI * q); }
+      if (t >= P.pour[1]) { lx = 70; ly = 138; }
+      at(S("ladle"), { transform: `translate(${lx} ${ly}) rotate(${rot})` });
+      S("ladleMetal").setAttribute("opacity", p < .7 ? 1 : 0);
+      at(S("stream"), { x1: lx + 12, y1: ly - 2, x2: 215, y2: 192, opacity: pour });
+      const inj = ease(seg(t, P.inject)), back = ease(seg(t, P.open));
+      at(S("shotMetal"), { x: lerp(204, 290, inj), width: p > .5 ? Math.max(0, 86 * (1 - inj)) : 0 });
+      S("plunger").setAttribute("transform", `translate(${86 * inj * (1 - back)} 0)`);
+      const ang = (-120 + 240 * Math.min(1, s[3] / 1500) * (t >= P.inject[0] && t < P.open[0] ? inj : 0)) * Math.PI / 180;
+      at(S("needle"), { x2: 215 + 17 * Math.sin(ang), y2: 150 - 17 * Math.cos(ang) });
+      const cool = seg(t, P.cool), inMold = t >= P.inject[0] && t < P.open[0] + 150;
+      S("cavHot").setAttribute("opacity", inMold ? inj * (1 - cool) : 0);
+      S("cavSolid").setAttribute("opacity", inMold ? inj * cool : 0);
+      at(S("cool"), { "stroke-dashoffset": -t * (t >= P.cool[0] && t < P.cool[1] ? .06 : .015), opacity: t >= P.cool[0] && t < P.cool[1] ? 1 : .45 });
+      const op = seg(t, P.open), close = ease(seg(t, [P.convey[0], P.convey[0] + 400]));
+      S("mover").setAttribute("transform", `translate(${55 * ease(op) * (1 - close)} 0)`);
+      let px = 330, py = 166, pv = 0;
+      if (t >= P.open[0] + 150 && t < P.convey[0]) { const q = ease(seg(t, [P.open[0] + 150, P.open[1]])); px = lerp(330, 430, q); py = lerp(166, 232, q) - 30 * Math.sin(Math.PI * q); pv = 1; }
+      if (t >= P.convey[0] && t < P.convey[1]) { const q = seg(t, P.convey); px = lerp(430, 688, q); py = 232; pv = 1; }
+      if (t >= P.branch[0] && t < P.drop[0]) { const q = seg(t, P.branch); pv = 1;
+        if (s[5]) { px = lerp(688, 836, q); py = lerp(232, 204, ease(Math.min(1, q / .35))); } else { px = lerp(688, 724, q); py = 232; } }
+      if (t >= P.drop[0]) { const q = ease(seg(t, P.drop)), x0 = s[5] ? 836 : 724, y0 = s[5] ? 204 : 232;
+        px = lerp(x0, s[5] ? 844 : 772, q); py = lerp(y0, 262, q) - (s[5] ? 6 : 16) * Math.sin(Math.PI * q); pv = 1 - seg(t, [P.drop[1] - 80, P.drop[1]]); }
+      const jd = px + 14 >= GATE && t >= P.convey[0];
+      at(S("part"), { x: px, y: py, opacity: pv, fill: jd ? (s[5] ? "#EF7A3B" : "#3DBE77") : "#9AA7A4" });
+      S("ptag").setAttribute("transform", `translate(${(px - 6).toFixed(1)} ${(py - 15).toFixed(1)})`); S("ptag").setAttribute("opacity", jd ? pv : 0);
+      S("flap").style.transform = s[5] && jd && t < P.drop[0] ? "rotate(-32deg)" : "rotate(0deg)";
+      const moving = (t >= P.convey[0] && t < P.convey[1]) || (!s[5] && t >= P.branch[0] && t < P.drop[0]);
+      S("belt").setAttribute("stroke-dashoffset", moving ? -t * .08 : 0);
+      const nearGate = Math.abs(px + 14 - GATE) < 26 && t >= P.convey[0] && t < P.convey[1];
+      at(S("beam"), { opacity: nearGate ? .35 + .3 * Math.sin(t / 30) : 0, fill: jd ? (s[5] ? "#EF7A3B" : "#3DBE77") : "#3E8ED0" });
+      return jd;
+    };
+    const cover = S("steps").closest(".slide");
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setShot(SH[0]); draw(2700, SH[0]); judge(SH[0]); return; }
+    setShot(SH[0]);
+    // 표지가 보일 때만 돈다
+    let last = null, running = false;
+    const frame = now => {
+      if (!cover.classList.contains("active")) { running = false; return; }
+      const dt = last === null ? 0 : clamp(now - last, 0, 100); last = now;
+      const s = SH[i];
+      t += dt / dur(s);
+      if (draw(Math.min(t, T), s) && !judged) { judge(s); judged = true; }
+      if (t >= T) { land(s); i = (i + 1) % SH.length; t = 0; judged = false; setShot(SH[i]); }
+      requestAnimationFrame(frame);
+    };
+    const start = () => { if (running || !cover.classList.contains("active")) return; running = true; last = null; requestAnimationFrame(frame); };
+    new MutationObserver(start).observe(cover, { attributes: true, attributeFilter: ["class"] });
+    start();
+  })();
+
+  // 특징 중요도 — 결과 페이지(시각화/스토리페이지.html) 값 · RF 300그루 · 파생 변수 4개 포함
+  (() => {
+    const D = [["이슬점", "Dew point", .0860, 1], ["고속 사출 속도", "High_Velocity", .0838], ["건조도", "공장 온도 − 이슬점", .0767, 1],
+      ["공장 습도", "Factory_Humidity", .0668, 1], ["이형제 분사 시간", "Spray_Time", .0633], ["사이클 시간", "Cycle_Time", .0621],
+      ["3단 사출 속도", "Velocity_3", .0454], ["냉각수 온도", "Coolant_Temp", .0452], ["냉각수 압력", "Coolant_Pressure", .0444],
+      ["공장 온도", "Factory_Temp", .0408, 1]];
+    const box = document.getElementById("impbars");
+    D.forEach(([k, e, v, air], i) => {
+      box.insertAdjacentHTML("beforeend", `<span class="ek"><span style="font-weight:${air ? 800 : 600}">${i + 1}. ${k}</span><small>${e}</small></span>
+        <div class="bar" style="--i:${3 + i * .5};--h:30px"><i style="--w:${(v / .09 * 100).toFixed(1)}%;--c:${air ? "var(--acc)" : "var(--pale)"}"></i></div>
+        <b class="n" style="text-align:right">${v.toFixed(3)}</b>`);
+    });
+  })();
+
+  // 슬라이드 넘기기
+  const slides = [...document.querySelectorAll(".slide")];
+  const prog = document.getElementById("prog"), pageno = document.getElementById("pageno"), notes = document.getElementById("notes");
+  let cur = 0;
+  const go = n => {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.remove("active");
+    cur = n;
+    void slides[cur].offsetWidth;
+    slides[cur].classList.add("active");
+    prog.style.width = (cur / (slides.length - 1) * 100) + "%";
+    pageno.textContent = `${cur + 1} / ${slides.length}`;
+    pageno.style.color = slides[cur].classList.contains("cover") ? "rgba(255,255,255,.6)" : "";
+    notes.innerHTML = `<b>${cur + 1}번 노트</b> · ${slides[cur].dataset.notes || ""}`;
+    history.replaceState(null, "", "#" + (cur + 1));
+  };
+  const fit = () => {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    document.getElementById("stage").style.transform = `translate(-50%,-50%) scale(${s})`;
+  };
+  addEventListener("resize", fit); fit();
+  addEventListener("keydown", e => {
+    if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+    else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(slides.length - 1);
+    else if (e.key === "n" || e.key === "N") notes.classList.toggle("on");
+    else if (e.key === "f" || e.key === "F") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.(); }
+  });
+  addEventListener("click", e => { if (e.target.closest(".notes")) return; e.clientX < innerWidth * 0.3 ? go(cur - 1) : go(cur + 1); });
+  let tx = null;
+  addEventListener("touchstart", e => tx = e.touches[0].clientX, { passive: true });
+  addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1)); tx = null; });
+  const start = parseInt(location.hash.slice(1), 10);
+  slides[0].classList.add("active");
+  go(Number.isFinite(start) ? start - 1 : 0);
+  setTimeout(() => document.getElementById("hint").style.opacity = 0, 4000);
+})();
+</script>
+</body>
+</html>
