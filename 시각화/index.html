@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* 전환: 작업 영역 내용을 잠깐 숨김(monitor.js 가 글꼴 준비 뒤 풂, 안 오면 1.5초 뒤 스스로 풂) · view transition 은 http(s) 에서만(file:// 에선 콘솔 에러가 나서 끔) */document.documentElement.classList.add("boot");setTimeout(function(){document.documentElement.classList.remove("boot")},1500);if(location.protocol!=="file:"){var s=document.createElement("style");s.textContent="@media not (prefers-reduced-motion:reduce){@view-transition{navigation:auto}}";document.head.appendChild(s)}</script>
+<title>불량예측 모니터링</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="monitor.css">
+<style>
+/* 공정 시뮬레이션 · 기록 로그 */
+.sim{display:flex;flex-direction:column;gap:10px}
+.steps{display:flex;flex-wrap:wrap;gap:6px}
+.steps span{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--work);color:var(--fg3);transition:background .2s,color .2s}
+.steps span.on{background:var(--frame);color:#fff}
+.stage{background:linear-gradient(180deg,#EEF4F1 0%,#E3ECE8 100%);border-radius:12px;overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.stage text{font-family:var(--font)}
+.speed{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;color:var(--fg3)}
+.speed .btn-line{padding:4px 12px;font-size:12px;white-space:nowrap}
+/* 줄 높이가 바뀌지 않게: 안내 글은 한 줄에서 잘리고, 건너뛰기 버튼은 숨겨도 자리를 지킨다 */
+#simNote{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stText{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* 상태 줄도 「생산 중」↔「생산 완료 · …」로 바뀌어도 줄이 늘지 않게 */
+@media (max-width:860px){#stText{flex-basis:100%}} /* 좁은 화면: 상태 글이 한 줄을 다 쓰고 진행 막대는 다음 줄(늘 같은 줄 수) */
+.glow{animation:glow 1.4s ease-in-out infinite alternate}
+@keyframes glow{from{opacity:.75}to{opacity:1}}
+
+.log{background:var(--frame);color:var(--frame-fg);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;min-width:0;min-height:0}
+.log h2{margin:0;font-size:14.5px;font-weight:600} .log .sub{font-size:12px;color:var(--frame-fg2);margin-top:2px}
+/* 기록 목록은 칸 높이를 바꾸지 않는다: 목록을 절대 위치로 띄워 칸 높이 = 왼쪽 공정 그림 높이, 넘치면 안에서 스크롤 */
+.log .logbox{position:relative;flex:1;min-height:0;margin-top:12px}
+.log ol{position:absolute;inset:0;list-style:none;margin:0;padding:0;overflow-y:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;flex-direction:column;gap:6px}
+@media (max-width:1100px){.log{height:380px}}
+.log ol{gap:0;border-top:1px solid #2A5A50}
+/* 기록 스크롤바: 기본 회색 막대 대신 패널 색에 맞춘 얇은 막대 (Chrome·Firefox = 표준 속성, Safari = webkit) */
+.log ol{scrollbar-width:thin;scrollbar-color:#2A5A50 transparent;scrollbar-gutter:stable;padding-right:4px}
+.log ol::-webkit-scrollbar{width:6px}
+.log ol::-webkit-scrollbar-track{background:transparent}
+.log ol::-webkit-scrollbar-thumb{background:#2A5A50;border-radius:3px}
+.log ol::-webkit-scrollbar-thumb:hover{background:var(--frame-fg2)}
+.log ol:hover{scrollbar-color:var(--frame-fg2) transparent}
+.log li{padding:8px 10px 8px 12px;border-bottom:1px solid #2A5A50;animation:logIn .9s ease-out}
+.log li .h{display:flex;justify-content:space-between;gap:8px;color:var(--frame-fg2)}
+.log li b{color:#fff;font-weight:700}
+.log li .j{font-weight:700;color:var(--green)} .log li.al .j{color:var(--orange)}
+.log li{border-left:3px solid var(--green)} .log li.al{border-left-color:var(--orange)}
+.log li .c{color:#F6B08A}
+.log .empty{color:var(--frame-fg2);font-family:var(--font);font-size:12.5px}
+@keyframes logIn{from{background:#2C6B5B}to{background:transparent}}
+/* v2: 계기판 · 주의 조건 점 · 적재 · 금형 교체 · 판정 근거 줄 · 경보율 추이 — 색은 기존 토큰(초록 하나 + 기존 경보색), 화려함은 움직임으로 */
+.stage{position:relative}
+.stage .gk{transition:transform .45s cubic-bezier(.3,.7,.3,1)}
+.stage .wd{opacity:0}
+.stage .wd.on{animation:wpulse 1.1s ease-in-out infinite alternate}
+@keyframes wpulse{from{opacity:.15}to{opacity:.95}}
+.stage .blk{animation:blkIn .25s ease-out both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes blkIn{from{opacity:0;transform:translateY(-5px)}}
+.stage .mold{transition:none}
+#flap{transform-box:fill-box;transform-origin:0 50%;transition:transform .2s ease}
+.chg{position:absolute;top:34%;left:76%;transform:translate(-50%,calc(-50% - 6px));opacity:0;transition:opacity .3s ease,transform .3s ease;background:var(--card);border-radius:10px;padding:7px 14px;box-shadow:0 8px 20px -10px rgba(16,36,31,.4);text-align:center;pointer-events:none;white-space:nowrap;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis}
+.chg.on{opacity:1;transform:translate(-50%,-50%)}
+.chg b{display:block;font-size:13px;color:var(--fg)} .chg span{display:block;font-size:11.5px;color:var(--fg2)} .chg small{display:block;font-size:10.5px;color:var(--fg3)}
+.why{display:grid;gap:2px;font-size:12px;color:var(--fg3);margin-top:-2px}
+.why>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:18px;height:18px}
+.dupb{display:inline-block;font-size:11px;font-weight:700;padding:0 8px;border-radius:999px;background:var(--track);color:var(--fg2);margin-right:6px;line-height:16px;transition:background .25s,color .25s}
+.dupb.on{background:var(--green-soft);color:#1E7A4A}
+.why .wdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--track);margin:0 8px 0 4px;vertical-align:1px}
+.why .w2.on .wdot{background:var(--red);animation:wpulse 1.1s ease-in-out infinite alternate}
+.why .w2.on #w2t{color:var(--fg)}
+.why .w2{display:flex;align-items:center} #w2t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis} .why .cav{flex:none;margin-left:10px;color:var(--fg3);font-size:11px}
+.trend{margin-top:10px;border-top:1px solid #2A5A50;padding-top:8px}
+.trend .th{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--frame-fg2)} .trend .th b{color:#fff;font-size:13px;margin-left:4px}
+.trend .th i{display:inline-block;width:14px;border-top:1px dashed var(--frame-fg2);vertical-align:3px;margin-right:5px}
+.trend .tw2{position:relative} .trend svg{display:block;width:100%;height:46px;margin-top:4px}
+.trend .emp{position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:11px;color:var(--frame-fg2)}
+.trend .tc{font-size:11px;line-height:1.45;color:var(--frame-fg2);margin-top:4px}
+@media (prefers-reduced-motion:reduce){.glow,.log li{animation:none}.stage .gk,.stage .blk,.chg,#flap{transition:none;animation:none}.stage .wd.on,.why .w2.on .wdot{animation:none;opacity:1}}
+</style>
+<script src="feed_data.js"></script>
+<script src="monitor.js"></script>
+</head>
+<body data-page="dashboard">
+<div class="frame">
+  <aside class="side"></aside><script>MON.side()</script>
+
+  <main class="work">
+    <div class="top"><h1>대시보드</h1><span class="meta" id="updated"></span><a class="btn" id="repBtn" href="report.html?cut=0">리포트 보기</a></div>
+
+    <div class="status busy" id="status"><span class="dot"></span><span id="stText">생산 중</span><span class="prog"><i id="stProg"></i></span>
+      <span class="hint" id="hint">24샷이 끝나면 다음 24샷을 이어서 생산합니다</span></div>
+
+    <div class="grid g21">
+      <section class="card sim">
+        <div class="ch" style="margin:0"><div><h2>공정 시뮬레이션</h2><div class="sub">test 샷을 shot_id 순으로 재생 · 수치는 그 샷의 실제 값 · 판정 = 최종 모델 KNN 예측(public 0.5890 제출과 같은 예측)</div></div></div>
+        <div class="steps" id="steps"><span>① 주탕</span><span>② 사출</span><span>③ 냉각</span><span>④ 형개 · 취출</span><span>⑤ AI 판정 · 기록</span></div>
+        <div class="stage">
+          <svg viewBox="0 0 900 300" role="img" aria-label="다이캐스팅 공정 시뮬레이션">
+            <defs>
+              <linearGradient id="melt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD27A"/><stop offset="1" stop-color="#EF7A3B"/></linearGradient>
+              <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FA19C"/><stop offset="1" stop-color="#5E716C"/></linearGradient>
+            </defs>
+            <line x1="0" y1="282" x2="900" y2="282" stroke="#C9D6D1" stroke-width="2"/>
+
+            <!-- 상단 정보 -->
+            <text x="20" y="30" font-size="17" font-weight="700" fill="#10241F" id="hShot">SHOT #—</text>
+
+            <!-- 용탕로 -->
+            <rect x="20" y="150" width="100" height="132" rx="6" fill="#2B4A44"/>
+            <text x="70" y="186" font-size="11" fill="#8FB2A9" text-anchor="middle">용탕로</text>
+            <text x="70" y="252" font-size="13" font-weight="700" fill="#FFB07A" text-anchor="middle" id="vMelt">—</text>
+            <rect x="30" y="160" width="80" height="10" rx="3" fill="#1A332E"/>
+            <rect x="32" y="142" width="76" height="14" rx="4" fill="url(#melt)" class="glow"/>
+            <rect x="40" y="196" width="60" height="36" rx="4" fill="#1A332E"/>
+            <rect x="48" y="208" width="44" height="6" rx="3" fill="#EF7A3B" opacity=".6" class="glow"/>
+
+            <!-- 타이바 -->
+            <line x1="300" y1="118" x2="560" y2="118" stroke="#A9B8B3" stroke-width="5"/>
+            <line x1="300" y1="232" x2="560" y2="232" stroke="#A9B8B3" stroke-width="5"/>
+            <!-- 기계 받침 -->
+            <rect x="150" y="240" width="420" height="42" rx="4" fill="#1D3A35"/>
+            <text x="290" y="266" font-size="11" fill="#8FB2A9" text-anchor="middle" letter-spacing="2">DIE CASTING</text>
+
+            <!-- 냉각수 -->
+            <path d="M250 96 H322 V135" fill="none" stroke="#9CC7E8" stroke-width="7" stroke-linecap="round"/>
+            <path d="M250 96 H322 V135" fill="none" stroke="#3E8ED0" stroke-width="3" stroke-dasharray="6 8" id="cool"/>
+
+            <!-- 주조 압력 게이지 -->
+            <circle cx="215" cy="150" r="22" fill="#fff" stroke="#A9B8B3" stroke-width="3"/>
+            <path d="M199 166 A22 22 0 1 1 231 166" fill="none" stroke="#E5ECE9" stroke-width="4"/>
+            <path d="" fill="none" stroke="#3DBE77" stroke-width="4" opacity=".55" id="castBand"/>
+            <line x1="215" y1="150" x2="215" y2="133" stroke="#D9473A" stroke-width="2.5" stroke-linecap="round" id="needle"/>
+            <circle cx="215" cy="150" r="3" fill="#10241F"/>
+            <text x="215" y="114" font-size="12" fill="#4A5E58" text-anchor="middle">주조압 <tspan font-weight="700" fill="#10241F" id="vCast">—</tspan></text>
+            <line x1="215" y1="172" x2="215" y2="196" stroke="#A9B8B3" stroke-width="3"/>
+
+            <!-- 사출 슬리브 · 플런저 -->
+            <rect x="160" y="196" width="140" height="22" rx="4" fill="url(#steel)"/>
+            <rect x="203" y="190" width="24" height="8" rx="2" fill="#5E716C"/>
+            <rect x="248" y="200" width="0" height="14" fill="#EF7A3B" id="shotMetal"/>
+            <g id="plunger"><rect x="120" y="201" width="80" height="12" rx="3" fill="#3B524D"/><rect x="194" y="199" width="10" height="16" rx="2" fill="#2B4A44"/></g>
+
+            <!-- 고정 금형 -->
+            <rect x="290" y="110" width="24" height="130" rx="3" fill="#2C4A44"/>
+            <g id="moldSet" class="mold">
+            <rect x="314" y="135" width="30" height="80" rx="2" fill="#7C8B88" id="moldF"/>
+            <!-- 캐비티 -->
+            <rect x="330" y="155" width="28" height="40" rx="3" fill="#B9C4C1" id="cavBase"/>
+            <rect x="330" y="155" width="28" height="40" rx="3" fill="#9AA7A4" opacity="0" id="cavSolid"/>
+            <rect x="330" y="155" width="28" height="40" rx="3" fill="url(#melt)" opacity="0" id="cavHot"/>
+            </g>
+            <!-- 가동 금형 -->
+            <g id="mover">
+              <rect x="344" y="135" width="30" height="80" rx="2" fill="#7C8B88" opacity=".92" id="moldM" class="mold"/>
+              <rect x="374" y="110" width="24" height="130" rx="3" fill="#2C4A44"/>
+              <rect x="398" y="168" width="90" height="14" fill="#5E716C"/>
+            </g>
+            <rect x="470" y="148" width="80" height="54" rx="6" fill="#2B4A44"/>
+            <text x="510" y="179" font-size="10.5" fill="#8FB2A9" text-anchor="middle">형체 실린더</text>
+
+            <!-- 신호등 -->
+            <rect x="574" y="70" width="4" height="170" fill="#A9B8B3"/>
+            <rect x="566" y="52" width="20" height="14" rx="3" fill="#E5ECE9" id="lampR"/>
+            <rect x="566" y="68" width="20" height="14" rx="3" fill="#E5ECE9" id="lampO"/>
+            <rect x="566" y="84" width="20" height="14" rx="3" fill="#3DBE77" id="lampG"/>
+
+            <!-- 컨베이어 -->
+            <rect x="420" y="250" width="330" height="8" rx="4" fill="#3B524D"/>
+            <line x1="424" y1="254" x2="746" y2="254" stroke="#8FB2A9" stroke-width="2" stroke-dasharray="4 10" id="belt"/>
+            <rect x="440" y="258" width="6" height="24" fill="#3B524D"/><rect x="724" y="258" width="6" height="24" fill="#3B524D"/>
+            <!-- 검사 라인: 경보 샷은 판정 게이트 뒤 갈림판이 들려 위 레일로 → 검사 통 -->
+            <rect x="690" y="222" width="182" height="5" rx="2.5" fill="#3B524D"/><rect x="820" y="227" width="4" height="55" fill="#3B524D"/>
+            <text x="760" y="216" font-size="10" fill="#4A5E58" text-anchor="middle">검사 라인</text>
+            <rect x="684" y="247" width="24" height="4" rx="2" fill="#2B4A44" id="flap"/>
+
+            <!-- AI 판정 게이트 -->
+            <text x="660" y="186" font-size="12" font-weight="700" fill="#10241F" text-anchor="middle">AI 판정 · 기록</text>
+            <rect x="634" y="196" width="6" height="54" fill="#2B4A44"/><rect x="680" y="196" width="6" height="54" fill="#2B4A44"/>
+            <rect x="634" y="192" width="52" height="8" rx="2" fill="#2B4A44"/>
+            <rect x="642" y="202" width="36" height="46" fill="#3DBE77" opacity="0" id="beam"/>
+            <g id="bubble" opacity="0">
+              <rect x="600" y="134" width="120" height="30" rx="15" fill="#3DBE77" id="bubbleBg"/>
+              <text x="660" y="154" font-size="13.5" font-weight="700" fill="#fff" text-anchor="middle" id="bubbleTx"></text>
+            </g>
+
+            <!-- 적재함 -->
+            <rect x="755" y="252" width="62" height="30" rx="4" fill="#E3F5EB" stroke="#3DBE77" stroke-width="2"/>
+            <g id="stackOk"></g>
+            <text x="786" y="296" font-size="11" font-weight="700" fill="#1E7A4A" text-anchor="middle" id="binOk">양품 0</text>
+            <rect x="827" y="252" width="62" height="30" rx="4" fill="#FDEDE3" stroke="#EF7A3B" stroke-width="2"/>
+            <g id="stackNg"></g>
+            <text x="858" y="296" font-size="11" font-weight="700" fill="#B4521C" text-anchor="middle" id="binNg">검사 0</text>
+
+            <!-- 계기판(값·평소 범위 띠·주의 조건 점) — 스크립트가 그린다 -->
+            <g id="gauges"></g>
+
+            <!-- 국자 -->
+            <g id="ladle">
+              <line x1="0" y1="-6" x2="-34" y2="-26" stroke="#3B524D" stroke-width="4" stroke-linecap="round"/>
+              <path d="M-14 -10 H14 L10 8 Q0 14 -10 8 Z" fill="#3B524D"/>
+              <rect x="-11" y="-10" width="22" height="5" rx="2" fill="url(#melt)" id="ladleMetal"/>
+            </g>
+            <line x1="0" y1="0" x2="0" y2="0" stroke="#EF7A3B" stroke-width="4" stroke-linecap="round" opacity="0" id="stream"/>
+
+            <!-- 주물 -->
+            <rect x="0" y="0" width="28" height="18" rx="3" fill="#9AA7A4" opacity="0" id="part"/>
+            <!-- 판정 꼬리표: 게이트를 지나면 주물에 붙어 통까지 간다 -->
+            <g id="ptag" opacity="0"><rect x="0" y="0" width="40" height="12" rx="6" id="ptagBg"/><text x="20" y="9" font-size="9" font-weight="700" text-anchor="middle" id="ptagTx"></text></g>
+          </svg>
+          <div class="chg" id="chg" aria-live="polite"><b id="chgT"></b><span id="chgD"></span><small>재생 test 샷 제품별 중앙값</small></div>
+        </div>
+        <div class="why">
+          <div class="w1" title="보고서 6장: 학습 쪽에 중복 기록 있음 563건 중 517건(92%) · 없음 619건 중 83건(13%)"><span class="dupb" id="dupB">판정 전</span>검증에서 학습에 같은 기록이 있는 샷은 불량 92%를, 없는 샷은 13%를 잡았습니다</div>
+          <div class="w2" id="w2"><i class="wdot"></i><span id="w2t">주의 조건 해당 없음</span><span class="cav">관련성이며 원인 확인은 아님(보고서 8장)</span></div>
+        </div>
+        <div class="speed"><span title="1× = 실제 사이클 22.6초(보고서 7장 사이클 중앙값)를 3.2초로 줄여 재생. 샷마다 그 샷의 실제 사이클에 비례">속도</span> <div class="seg" id="speed"><button class="on" data-v="1">1×</button><button data-v="3">3×</button><button data-v="8">8×</button></div>
+          <span id="simNote"></span><button class="btn-line" id="toSwitch" title="제품 1 → 2 로 바뀌기 3샷 앞으로 이동">제품 전환 보기</button><button class="btn-line" id="pause" aria-pressed="false">일시정지</button><button class="btn-line" id="skip">이번 24샷 건너뛰기</button></div>
+      </section>
+
+      <section class="log">
+        <h2>생산 기록</h2><div class="sub">판정 게이트를 지날 때마다 한 줄씩 남깁니다 · 최근 40줄</div>
+        <div class="trend">
+          <div class="th"><span>최근 50샷 경보율<b id="trV">–</b></span><span><i></i>기준 19%</span></div>
+          <div class="tw2"><span class="emp" id="trE">5샷이 쌓이면 그립니다</span><svg viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="300" y1="24.15" y2="24.15" stroke="#8FB2A9" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
+            <polyline id="trLine" fill="none" stroke="#EF7A3B" stroke-width="1.8" stroke-linejoin="round" vector-effect="non-scaling-stroke" points=""/></svg></div>
+          <div class="tc" title="보고서 9장: 지금 쓰면(배율 1.0, 처음 보는 시기 기준) 하루 1,000샷에 경보 약 190건">기준 19% = 처음 보는 시기 기준 하루 1,000샷에 경보 약 190건(보고서 9장). 재생 샷은 57.7%가 학습에 같은 기록이 있어 그 조건이 아닙니다.</div>
+        </div>
+        <div class="logbox"><ol id="log"><li class="empty" style="border:0">첫 샷 생산 중…</li></ol></div>
+      </section>
+    </div>
+
+    <div class="grid g3">
+      <section class="card kpi"><div class="l">이번 생산 · 경보</div><div class="v"><span id="k1">0</span><small>건 / 24샷</small></div>
+        <div class="d" id="k1d">&nbsp;</div><div class="spark o" id="sp1"></div></section>
+      <section class="card kpi"><div class="l">누적 생산</div><div class="v"><span id="k2">0</span><small>샷</small></div>
+        <div class="d" id="k2d">&nbsp;</div><div class="spark" id="sp2"></div></section>
+      <section class="card kpi"><div class="l">이번 생산 · 주의 조건 해당</div><div class="v"><span id="k3">0</span><small>샷</small></div>
+        <div class="d" id="k3d">&nbsp;</div><div class="spark o" id="sp3"></div></section>
+    </div>
+
+    <div class="grid g3">
+      <section class="card">
+        <div class="ch"><div><h2>이번 생산 판정</h2><div class="sub">유형별 건수</div></div><a class="more" href="feed.html">전체 기록 →</a></div>
+        <div class="hb" id="mix"></div>
+      </section>
+      <section class="card">
+        <h2>모델 기대 성능</h2><div class="sub">시간순 검증 · 처음 보는 시기 기준</div>
+        <div class="big">19.5<small>%</small></div>
+        <svg class="gauge" viewBox="0 0 200 110" id="gauge"></svg>
+        <div class="gnote">불량 탐지율 · 실제 <b>231</b>건 중 <b>45</b>건</div>
+        <div class="mini"><div>경보 적중률<b>22.6%</b></div><div>macro F1<b>0.138</b></div></div>
+      </section>
+      <section class="ops">
+        <div class="ch"><div><h2>경보 기준 · 현재 배율 1.0</h2><div class="sub">시간순 · 1,000샷 환산</div></div><a class="more" href="rules.html">자세히 →</a></div>
+        <div class="nums"><div>놓침<b>176</b></div><div>헛경보<b>147</b></div><div>비용<b>1,907</b></div></div>
+        <div class="sub">비용 = 놓침 × 10 + 헛경보 (가정). 전수 검사는 781로 더 쌉니다.</div>
+      </section>
+    </div>
+
+    <div class="grid g2">
+      <section class="card">
+        <div class="ch"><div><h2>유형별 검출</h2><div class="sub">5-fold OOF · 유형까지 맞힌 비율</div></div><a class="more" href="types.html">자세히 →</a></div>
+        <div class="hb" id="typeRates"></div>
+      </section>
+      <section class="card">
+        <div class="ch"><div><h2>주의 조건</h2><div class="sub">링 = train에서 그 조건의 불량 비율</div></div><a class="more" href="conditions.html">자세히 →</a></div>
+        <div class="pills" id="pills"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const { $, fmt, hms, TYPES, BATCH, CONDS, condsOf, receive, batchShots, spark, ring, gauge, hbars, FEED } = MON;
+  // 24샷 단위로 이어서 생산한다. 24샷마다 hist·cur·shots·total 을 새로 정한다
+  let hist, cur, shots, total;
+  const alarms = s => s.filter(x => x.pred).length, conds = s => s.filter(x => condsOf(x).length).length;
+  const LOG_MAX = 40, NEXT_GAP = 1500; // 생산 기록은 최근 40줄만 남김(오래 틀어 둬도 DOM 이 늘지 않게) · 24샷 사이 쉬는 시간(ms)
+  gauge($("gauge"), 0.195);
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const median = a => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const S = id => $(id), at = (el, o) => { for (const k in o) el.setAttribute(k, o[k]); };
+
+  // ── 계기판: 값 = 그 샷의 실제 값 · 초록 띠 = 그 제품 train 값의 가운데 90%(5~95%, feed_data.js RANGE) · 눈금 끝 = 두 제품 1~99% 를 다 담는 폭 ──
+  const RANGE = window.RANGE;
+  const GA = [
+    { k: "cycle", lab: "사이클", u: "s", d: 1, x: 20, y: 51, w: 84 },
+    { k: "spray", lab: "분사", u: "s", d: 1, x: 122, y: 51, w: 84 },
+    { k: "fac", lab: "공장", u: "°C", d: 1, x: 224, y: 51, w: 84 },
+    { k: "coolT", lab: "냉각수 온도", u: "°C", d: 1, x: 345, y: 70, w: 84 },
+    { k: "coolP", lab: "냉각수 압력", u: "", d: 2, x: 345, y: 92, w: 84 },
+    { k: "melt", x: 32, y: 262, w: 76, dark: 1 }, // 값 글자는 용탕로 위 vMelt
+  ];
+  GA.forEach(g => {
+    const lo = Math.min(RANGE[1][g.k][0], RANGE[2][g.k][0]), hi = Math.max(RANGE[1][g.k][3], RANGE[2][g.k][3]), pad = (hi - lo) * .04;
+    g.lo = lo - pad; g.hi = hi + pad; const ty = g.dark ? g.y : g.y + 7, root = $("gauges");
+    if (!g.dark) { const tx = mk("text", { x: g.x, y: g.y, "font-size": 12, fill: "#4A5E58" }, root); tx.textContent = g.lab + " "; g.v = mk("tspan", { "font-weight": 700, fill: "#10241F" }, tx); }
+    mk("line", { x1: g.x, x2: g.x + g.w, y1: ty, y2: ty, stroke: g.dark ? "#3B524D" : "#CFDBD6", "stroke-width": 2, "stroke-linecap": "round" }, root);
+    g.band = mk("rect", { x: 0, y: ty - 1.5, width: 1, height: 3, fill: "#3DBE77", opacity: g.dark ? .6 : .5, class: "gk" }, root);
+    g.mk = mk("circle", { cx: 0, cy: ty, r: 2.8, fill: g.dark ? "#FFB07A" : "#10241F", class: "gk" }, root);
+    g.wd = mk("circle", { cx: g.dark ? g.x + g.w + 6 : g.x - 7, cy: g.dark ? ty : g.y - 4, r: 2.6, fill: "#D9473A", class: "wd" }, root);
+    g.mk.style.transform = `translateX(${g.x}px)`; g.band.style.transform = `translateX(${g.x}px) scaleX(1)`; // 처음 열면 왼쪽 끝에서 제자리로 움직인다
+  });
+  const pos = (g, v) => g.x + g.w * clamp((v - g.lo) / (g.hi - g.lo), 0, 1);
+  const setBands = p => GA.forEach(g => { const a = pos(g, RANGE[p][g.k][1]), b = pos(g, RANGE[p][g.k][2]); g.band.style.transform = `translateX(${a.toFixed(1)}px) scaleX(${Math.max(1.5, b - a).toFixed(1)})`; });
+  // 주조압 바늘판의 평소 범위(같은 0~1,500 눈금, 너무 좁으면 5° 로 보이게)
+  const arcPt = v => { const a = (-120 + 240 * clamp(v / 1500, 0, 1)) * Math.PI / 180; return `${(215 + 22 * Math.sin(a)).toFixed(1)} ${(150 - 22 * Math.cos(a)).toFixed(1)}`; };
+  const castBand = p => { let [, a, b] = RANGE[p].cast; if (b - a < 31.25) { const m = (a + b) / 2; a = m - 15.6; b = m + 15.6; } S("castBand").setAttribute("d", `M${arcPt(a)} A22 22 0 0 1 ${arcPt(b)}`); };
+
+  // ── 주의 조건: 판정은 monitor.js CONDS(condsOf) 그대로 · 문구는 보고서 8장 숫자 ──
+  const WHY = {
+    blow: "기공 주의 · 냉각수 온도 ≤ 26.4°C → train 기공 23.4% (26.4°C 초과는 6.2%)",
+    stain: "얼룩 주의 · 냉각수 압력 상위 1/3 (> 2.730) → train 얼룩 9.7% (하위 1/3 은 0.0%)",
+    deform: "변형 주의 · Spray_1_Time 1.0 · 공장 온도 > 34.7°C · 용탕로 온도 ≤ 700°C · 이형제 분사 시간 ≤ 8.0초 → train 변형 25.9%",
+  };
+  const TIP = { // 보고서 8장 표 전체(마우스를 올리면)
+    blow: "기공(제품 2): 냉각수 온도 ≤ 26.4°C 512샷 23.4% · > 26.4°C 1,812샷 6.2%",
+    stain: "얼룩(제품 2): 냉각수 압력 하위 1/3 (≤ 2.640) 852샷 0.0% · 상위 1/3 (> 2.730) 762샷 9.7%",
+    deform: "변형(제품 1, Spray_1_Time 1.0 기간 안): 기간 전체 988샷 10.2% → + 공장 온도 > 34.7°C 536샷 15.7% → + 용탕로 온도 ≤ 700°C 268샷 21.6% → + 이형제 분사 시간 ≤ 8.0초 197샷 25.9%",
+  };
+  const WG = { blow: ["coolT"], stain: ["coolP"], deform: ["fac", "melt", "spray"] }; // 조건마다 점이 켜지는 계기
+
+  // ── 경보율 추이: 최근 50샷 경보 비율 · 기준선 19% = 보고서 9장 「처음 보는 시기 기준 하루 1,000샷에 경보 약 190건」 ──
+  const TR_N = 50, TR_PTS = 120; let series = [];
+  const trDraw = () => {
+    const pts = [];
+    for (let j = Math.max(1, series.length - TR_PTS + 1); j <= series.length; j++) { const w = series.slice(Math.max(0, j - TR_N), j); if (w.length >= 5) pts.push(w.reduce((a, b) => a + b, 0) / w.length * 100); }
+    S("trLine").setAttribute("points", pts.map((r, j) => `${(300 * (j + TR_PTS - pts.length) / (TR_PTS - 1)).toFixed(1)},${(46 * (1 - Math.min(40, r) / 40)).toFixed(1)}`).join(" "));
+    $("trV").textContent = pts.length ? `${pts[pts.length - 1].toFixed(1)}%` : "–"; $("trE").hidden = pts.length > 0;
+  };
+  const trPush = s => { series.push(s.pred ? 1 : 0); if (series.length > TR_N + TR_PTS) series.shift(); trDraw(); };
+
+  // ── 기록: 샷 하나가 판정 게이트를 지나면 호출 ──
+  const cnt = Array(7).fill(0); let k1 = 0, k3 = 0, n = 0, ok = 0, ng = 0, okL = 0, ngL = 0;
+  const mix = () => hbars($("mix"), TYPES.map((t, j) => ({ label: t, value: cnt[j], text: `${cnt[j]}`, color: j ? "var(--orange)" : "var(--green)" })), BATCH);
+  mix();
+  const pad = v => String(v).padStart(2, "0");
+  const record = s => {
+    const c = condsOf(s); n++; cnt[s.pred]++; if (s.pred) { k1++; ng++; } else ok++; if (c.length) k3++;
+    const d = new Date(), ts = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const li = document.createElement("li"); if (s.pred) li.className = "al";
+    li.innerHTML = `<div class="h"><span>${ts}</span><span>${n} / ${BATCH}</span></div>
+      <div><b>#${s.id}</b> 제품${s.prod} · 용탕 ${s.melt.toFixed(1)}°C · 주조압 ${fmt(s.cast)}</div>
+      <div>냉각수 ${s.coolT.toFixed(1)}°C · 사이클 ${s.cycle.toFixed(1)}s</div>
+      <div>→ <span class="j">${s.pred ? `${TYPES[s.pred]} · 검사함` : "정상 · 양품함"}</span>${c.length ? ` <span class="c">! ${c.map(x => x.name).join("·")} 조건</span>` : ""}</div>`;
+    const log = $("log"); log.querySelector(".empty")?.remove(); log.prepend(li);
+    while (log.children.length > LOG_MAX) log.lastElementChild.remove();
+    $("k1").textContent = k1; $("k3").textContent = k3; $("k2").textContent = fmt(total - BATCH + n);
+    $("stText").innerHTML = `생산 중 · <b>${n}</b> / ${BATCH}샷 기록`; $("stProg").style.width = `${n / BATCH * 100}%`;
+    mix(); trPush(s);
+    $("repBtn").href = `report.html?cut=${n}`;
+  };
+  // 통에 떨어지면 블록 하나가 쌓인다(통 글자 = 쌓인 개수 · 24샷이 끝나면 양품 ok · 검사 ng 와 같다)
+  const land = s => {
+    const k = s.pred ? ngL++ : okL++, x0 = s.pred ? 831 : 759;
+    mk("rect", { x: x0 + (k % 8) * 7, y: 276 - Math.floor(k / 8) * 5, width: 6, height: 4, rx: 1, fill: s.pred ? "#EF7A3B" : "#3DBE77", class: "blk" }, $(s.pred ? "stackNg" : "stackOk"));
+    $("binOk").textContent = `양품 ${okL}`; $("binNg").textContent = `검사 ${ngL}`;
+  };
+  const done = () => {
+    stop = true;
+    const recent = hist.slice(-8).map(batchShots), allShots = hist.flatMap(batchShots), allAlarm = alarms(allShots);
+    $("status").classList.remove("busy");
+    $("stText").innerHTML = `생산 완료 · <b>${hms(cur.t)}</b> · shot ${shots[0].id} ~ ${shots[BATCH - 1].id} · ${hist.length}번째 묶음`;
+    $("k1d").innerHTML = `<b class="or">경보 비율 ${(k1 / BATCH * 100).toFixed(1)}%</b> · 최근 ${recent.length}묶음 막대`;
+    $("k2d").innerHTML = `경보 <b class="or">${fmt(allAlarm)}건</b> · ${(allAlarm / total * 100).toFixed(1)}%`;
+    $("k3d").innerHTML = `누적 ${fmt(conds(allShots))}샷 · 조건별은 주의 조건 화면`;
+    spark($("sp1"), recent.map(alarms)); spark($("sp2"), recent.map(s => alarms(s) / s.length * 100)); spark($("sp3"), recent.map(conds));
+    renderPills(allShots);
+    $("skip").style.visibility = "hidden";
+    [...$("steps").children].forEach(x => x.classList.remove("on"));
+    if (!auto) { $("simNote").textContent = "생산 완료 · 새로고침하면 다음 24샷"; return; }
+    $("simNote").textContent = "생산 완료 · 곧 다음 24샷";
+    if (paused) waiting = true; else nextTimer = setTimeout(next, NEXT_GAP);
+  };
+
+  // ── 공정 애니메이션 · 한 샷 3.2초(1×, 사이클 22.6초 기준) · 샷마다 그 샷의 실제 사이클에 비례(극단값은 0.85~1.75배로 자름) ──
+  const P = { pour: [0, 700], inject: [700, 1100], cool: [1100, 1600], open: [1600, 1900], convey: [1900, 2550], branch: [2550, 2950], drop: [2950, 3200] }, T = 3200;
+  const dur = s => clamp(s.cycle / 22.6, .85, 1.75); // 22.6초 = 보고서 7장 사이클 중앙값(재생 test 샷 중앙값도 22.6초)
+  const seg = (t, [a, b]) => Math.min(1, Math.max(0, (t - a) / (b - a)));
+  const ease = x => x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+  const lerp = (a, b, q) => a + (b - a) * q;
+  const GATE = 660;
+
+  const setShot = s => {
+    $("hShot").textContent = `SHOT #${s.id} · 제품 ${s.prod}`;
+    $("vMelt").textContent = `${s.melt.toFixed(1)}°C`; $("vCast").textContent = fmt(s.cast);
+    GA.forEach(g => { if (g.v) g.v.textContent = `${s[g.k].toFixed(g.d)}${g.u}`; g.mk.style.transform = `translateX(${pos(g, s[g.k]).toFixed(1)}px)`; });
+    setBands(s.prod); castBand(s.prod);
+    const cs = condsOf(s), hot = new Set(cs.flatMap(c => WG[c.key]));
+    GA.forEach(g => g.wd.classList.toggle("on", hot.has(g.k)));
+    $("w2").classList.toggle("on", cs.length > 0); $("w2t").textContent = cs.length ? cs.map(c => WHY[c.key]).join(" / ") : "주의 조건 해당 없음";
+    $("w2").title = cs.length ? cs.map(c => TIP[c.key]).join("\n") + "\n관련성이 관찰된 것이지 원인이 확인된 것이 아닙니다(보고서 8장 한계)" : "주의 조건은 train 에서 관찰한 관련성입니다(보고서 8장)";
+    S("bubble").setAttribute("opacity", 0); S("ptag").setAttribute("opacity", 0);
+    at(S("lampG"), { fill: "#3DBE77" }); at(S("lampO"), { fill: "#E5ECE9" }); at(S("lampR"), { fill: "#E5ECE9" });
+  };
+
+  const draw = (t, s) => {
+    // 단계 표시
+    const ph = t < P.inject[0] ? 0 : t < P.cool[0] ? 1 : t < P.open[0] ? 2 : t < P.convey[0] + 300 ? 3 : 4;
+    [...$("steps").children].forEach((x, i) => x.classList.toggle("on", i === ph));
+
+    // ① 주탕: 국자가 용탕로 → 슬리브, 기울여 붓고 돌아감
+    const p = seg(t, P.pour); let lx, ly, rot = 0, pour = 0;
+    if (p < .35) { const q = ease(p / .35); lx = lerp(70, 215, q); ly = lerp(138, 176, q) - 50 * Math.sin(Math.PI * q); }
+    else if (p < .75) { const q = (p - .35) / .4; lx = 215; ly = 176; rot = -55 * Math.sin(Math.PI * Math.min(1, q * 1.4)); pour = q < .85 ? 1 : 0; }
+    else { const q = ease((p - .75) / .25); lx = lerp(215, 70, q); ly = lerp(176, 138, q) - 50 * Math.sin(Math.PI * q); }
+    if (t >= P.pour[1]) { lx = 70; ly = 138; }
+    at(S("ladle"), { transform: `translate(${lx} ${ly}) rotate(${rot})` });
+    S("ladleMetal").setAttribute("opacity", p < .7 ? 1 : 0);
+    at(S("stream"), { x1: lx + 12, y1: ly - 2, x2: 215, y2: 192, opacity: pour });
+
+    // ② 사출: 슬리브 안 용탕이 플런저에 밀려 캐비티로 · 바늘 = 그 샷의 주조압
+    const inj = ease(seg(t, P.inject)), back = ease(seg(t, P.open));
+    const filled = p > .5 ? 1 : 0;
+    at(S("shotMetal"), { x: lerp(204, 290, inj), width: filled ? Math.max(0, 86 * (1 - inj)) : 0 });
+    S("plunger").setAttribute("transform", `translate(${86 * inj * (1 - back)} 0)`);
+    const ang = -120 + 240 * Math.min(1, s.cast / 1500) * (t >= P.inject[0] && t < P.open[0] ? inj : 0);
+    const r = ang * Math.PI / 180;
+    at(S("needle"), { x2: 215 + 17 * Math.sin(r), y2: 150 - 17 * Math.cos(r) });
+
+    // ③ 냉각: 캐비티 색이 주황 → 회색, 냉각수 흐름
+    const cool = seg(t, P.cool), inMold = t >= P.inject[0] && t < P.open[0] + 150;
+    S("cavHot").setAttribute("opacity", inMold ? inj * (1 - cool) : 0);
+    S("cavSolid").setAttribute("opacity", inMold ? inj * cool : 0);
+    at(S("cool"), { "stroke-dashoffset": -t * (t >= P.cool[0] && t < P.cool[1] ? .06 : .015), opacity: t >= P.cool[0] && t < P.cool[1] ? 1 : .45 });
+
+    // ④ 형개 · 취출: 가동 금형이 열리고 주물이 컨베이어로
+    const op = seg(t, P.open), close = ease(seg(t, [P.convey[0], P.convey[0] + 400]));
+    S("mover").setAttribute("transform", `translate(${55 * ease(op) * (1 - close)} 0)`);
+    let px = 330, py = 166, pv = 0;
+    if (t >= P.open[0] + 150 && t < P.convey[0]) { const q = ease(seg(t, [P.open[0] + 150, P.open[1]])); px = lerp(330, 430, q); py = lerp(166, 232, q) - 30 * Math.sin(Math.PI * q); pv = 1; }
+    // ⑤ 컨베이어 → 판정 게이트 → 갈림판(경보면 위 검사 라인) → 통
+    if (t >= P.convey[0] && t < P.convey[1]) { const q = seg(t, P.convey); px = lerp(430, 688, q); py = 232; pv = 1; }
+    if (t >= P.branch[0] && t < P.drop[0]) { const q = seg(t, P.branch); pv = 1;
+      if (s.pred) { px = lerp(688, 836, q); py = lerp(232, 204, ease(Math.min(1, q / .35))); } else { px = lerp(688, 724, q); py = 232; } }
+    if (t >= P.drop[0]) { const q = ease(seg(t, P.drop)), x0 = s.pred ? 836 : 724, y0 = s.pred ? 204 : 232;
+      px = lerp(x0, s.pred ? 844 : 772, q); py = lerp(y0, 262, q) - (s.pred ? 6 : 16) * Math.sin(Math.PI * q); pv = 1 - seg(t, [P.drop[1] - 80, P.drop[1]]); }
+    const judged = px + 14 >= GATE && t >= P.convey[0];
+    at(S("part"), { x: px, y: py, opacity: pv, fill: judged ? (s.pred ? "#EF7A3B" : "#3DBE77") : "#9AA7A4" });
+    S("ptag").setAttribute("transform", `translate(${(px - 6).toFixed(1)} ${(py - 15).toFixed(1)})`); S("ptag").setAttribute("opacity", judged ? pv : 0);
+    S("flap").style.transform = s.pred && judged && t < P.drop[0] ? "rotate(-32deg)" : "rotate(0deg)";
+    const moving = (t >= P.convey[0] && t < P.convey[1]) || (!s.pred && t >= P.branch[0] && t < P.drop[0]);
+    S("belt").setAttribute("stroke-dashoffset", moving ? -t * .08 : 0);
+    const nearGate = Math.abs(px + 14 - GATE) < 26 && t >= P.convey[0] && t < P.convey[1];
+    at(S("beam"), { opacity: nearGate ? .35 + .3 * Math.sin(t / 30) : 0, fill: judged ? (s.pred ? "#EF7A3B" : "#3DBE77") : "#3E8ED0" });
+    return judged;
+  };
+
+  // ── 제품 전환: 제품이 바뀌는 샷 앞에서 금형을 갈아 끼운다(가동 금형 열림 → 금형 들어 올림 → 새 금형 내림 → 닫힘) ──
+  const CHG = 2600, TONE = { 1: "#7C8B88", 2: "#6C8A80" };
+  const MED = {}; [1, 2].forEach(p => { const r = FEED.filter(x => x[1] === p); MED[p] = { cast: median(r.map(x => x[5])), cycle: median(r.map(x => x[6])) }; }); // 재생 test 샷의 제품별 중앙값
+  let chg = 0, chgTo = 1, toneSet = false, chgHide = null, lastProd = null;
+  const setTone = p => ["moldF", "moldM"].forEach(id => S(id).setAttribute("fill", TONE[p]));
+  const resetMolds = () => ["moldSet", "moldM"].forEach(id => { S(id).style.transform = ""; S(id).style.opacity = ""; });
+  const startChg = (a, b) => {
+    chg = CHG; chgTo = b; toneSet = false; clearTimeout(chgHide);
+    $("chgT").textContent = `금형 교체 · 제품 ${a} → 제품 ${b}`;
+    $("chgD").textContent = `주조압 ${fmt(MED[a].cast)} → ${fmt(MED[b].cast)} · 사이클 ${MED[a].cycle.toFixed(1)}초 → ${MED[b].cycle.toFixed(1)}초`;
+    $("chg").classList.add("on"); $("simNote").textContent = "금형 교체 중";
+    [...$("steps").children].forEach(x => x.classList.remove("on"));
+    ["part", "ptag", "bubble"].forEach(id => S(id).setAttribute("opacity", 0)); S("flap").style.transform = "rotate(0deg)";
+  };
+  const drawChg = q => {
+    const open = q < .25 ? ease(q / .25) : q < .75 ? 1 : 1 - ease((q - .75) / .25);
+    S("mover").setAttribute("transform", `translate(${55 * open} 0)`);
+    const lift = q < .25 ? 0 : q < .5 ? ease((q - .25) / .25) : q < .75 ? 1 - ease((q - .5) / .25) : 0;
+    if (q >= .5 && !toneSet) { toneSet = true; setTone(chgTo); }
+    ["moldSet", "moldM"].forEach(id => { S(id).style.transform = `translateY(${(-70 * lift).toFixed(1)}px)`; S(id).style.opacity = (1 - lift).toFixed(2); });
+  };
+  const endChg = () => { chg = 0; resetMolds(); setTone(chgTo); $("simNote").textContent = ""; chgHide = setTimeout(() => $("chg").classList.remove("on"), 2200); };
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // 화면 점검용: ?at=1500 이면 1× 기준 1.5초 시점 장면에서 멈춘다
+  const at0 = +new URLSearchParams(location.search).get("at");
+  const auto = !reduce && !at0; // 동작 줄이기 설정이면 자동으로 이어 돌리지 않는다(새로고침으로 다음 24샷)
+  // speed 는 항상 1에서 시작(어디에도 저장하지 않음)
+  let i = 0, t = 0, last = null, speed = 1, recorded = false, stop = true, paused = false, waiting = false, nextTimer = null, loop = 0;
+  const judge = s => {
+    record(s); recorded = true;
+    $("bubbleTx").textContent = s.pred ? `${TYPES[s.pred]} → 검사` : "정상 → 양품";
+    at(S("bubbleBg"), { fill: s.pred ? "#EF7A3B" : "#3DBE77" }); S("bubble").setAttribute("opacity", 1);
+    if (s.pred) { at(S("lampO"), { fill: "#EF7A3B" }); at(S("lampG"), { fill: "#E5ECE9" }); }
+    if (condsOf(s).length) at(S("lampR"), { fill: "#D9473A" });
+    // 판정 근거: 꼬리표(판정 유형) · 학습에 같은 기록 있음/없음(feed_data.js 12번째 값)
+    at(S("ptagBg"), { fill: s.pred ? "#FDEDE3" : "#E3F5EB" }); at(S("ptagTx"), { fill: s.pred ? "#B4521C" : "#1E7A4A" }); S("ptagTx").textContent = TYPES[s.pred];
+    const b = $("dupB"); b.textContent = s.dup ? "학습에 같은 기록 있음" : "학습에 같은 기록 없음"; b.classList.toggle("on", !!s.dup);
+  };
+  const begin = s => { setShot(s); if (lastProd !== null && s.prod !== lastProd) startChg(lastProd, s.prod); lastProd = s.prod; };
+  // dt(ms)만큼 진행 · 24샷이 끝나면 false
+  const advance = dt => {
+    if (chg > 0) { chg -= dt * speed; drawChg(clamp(1 - chg / CHG, 0, 1)); if (chg <= 0) endChg(); return true; }
+    const s = shots[i];
+    t += dt * speed / dur(s);
+    if (draw(Math.min(t, T), s) && !recorded) judge(s);
+    if (t >= T) {
+      if (!recorded) judge(s);
+      land(s);
+      if (++i >= BATCH) { done(); return false; }
+      t = 0; recorded = false; begin(shots[i]);
+    }
+    return true;
+  };
+  // 애니메이션 루프는 늘 하나만 돈다(loop 번호가 바뀌면 이전 루프는 멈춤). 탭이 숨으면 rAF 가 멈추고, 돌아와도 한 프레임 최대 100ms 만 진행해 몰아서 돌지 않는다
+  let tick = 0;
+  const run = () => {
+    const id = ++loop; last = null; tick = performance.now();
+    const frame = now => {
+      if (id !== loop || stop || paused) return;
+      tick = performance.now();
+      const dt = last === null ? 0 : clamp(now - last, 0, 100); last = now;
+      let more = true;
+      try { more = advance(dt); } finally { if (more && id === loop && !stop && !paused) requestAnimationFrame(frame); }
+    };
+    requestAnimationFrame(frame);
+  };
+  // 감시: 돌아야 하는데 1.5초 넘게 한 프레임도 안 지나갔으면(화면이 보이는 동안) 루프를 다시 건다
+  setInterval(() => { if (!stop && !paused && document.visibilityState === "visible" && performance.now() - tick > 1500) run(); }, 1000);
+  let first = true;
+  const startBatch = from => {
+    const st = receive(from); hist = st.hist; cur = hist[hist.length - 1]; shots = batchShots(cur);
+    total = hist.reduce((a, b) => a + b.n, 0);
+    cnt.fill(0); k1 = k3 = n = ok = ng = okL = ngL = 0; mix();
+    $("stackOk").replaceChildren(); $("stackNg").replaceChildren();
+    $("k1").textContent = 0; $("k3").textContent = 0; $("k2").textContent = fmt(total - BATCH);
+    ["k1d", "k2d", "k3d"].forEach(id => $(id).innerHTML = "&nbsp;");
+    $("binOk").textContent = "양품 0"; $("binNg").textContent = "검사 0";
+    $("status").classList.add("busy"); $("stText").innerHTML = "생산 중"; $("stProg").style.width = "0%";
+    $("updated").textContent = `마지막 갱신 ${hms(cur.t)}`; $("repBtn").href = "report.html?cut=0";
+    $("simNote").textContent = ""; $("skip").style.visibility = "";
+    if (first) { first = false; series = hist.slice(0, -1).flatMap(batchShots).slice(-(TR_N + TR_PTS)).map(x => x.pred ? 1 : 0); trDraw(); setTone(shots[0].prod); }
+    i = 0; t = 0; recorded = false; stop = false; begin(shots[i]);
+  };
+  const next = () => { nextTimer = null; startBatch(); run(); };
+  const skip = () => {
+    if (stop) return;
+    loop++; if (chg > 0) endChg();
+    if (!recorded) record(shots[i]); land(shots[i]);
+    while (++i < BATCH) { record(shots[i]); land(shots[i]); }
+    const s = shots[BATCH - 1]; setShot(s); lastProd = s.prod; setTone(s.prod);
+    draw(0, s); ["part", "ptag"].forEach(id => S(id).setAttribute("opacity", 0)); done();
+  };
+  const setPaused = v => {
+    paused = v; $("pause").textContent = v ? "계속" : "일시정지"; $("pause").setAttribute("aria-pressed", String(v));
+    if (v) { if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; waiting = true; } return; }
+    if (waiting) { waiting = false; next(); } else if (!stop) run();
+  };
+  // 제품 전환 보기: 제품이 바뀌는 샷 3샷 앞에서 새로 시작
+  const SW = FEED.findIndex((r, j) => j > 0 && r[1] !== FEED[j - 1][1]);
+  const toSwitch = () => {
+    loop++; clearTimeout(nextTimer); nextTimer = null; waiting = false;
+    if (paused) { paused = false; $("pause").textContent = "일시정지"; $("pause").setAttribute("aria-pressed", "false"); }
+    if (chg > 0) endChg();
+    lastProd = FEED[SW - 3][1]; setTone(lastProd);
+    startBatch(SW - 3); if (reduce || at0) skip(); else run();
+  };
+
+  $("speed").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; speed = +b.dataset.v;
+    [...$("speed").children].forEach(x => x.classList.toggle("on", x === b)); });
+  $("skip").addEventListener("click", skip);
+  $("pause").addEventListener("click", () => setPaused(!paused));
+  if (SW > 3) $("toSwitch").addEventListener("click", toSwitch); else $("toSwitch").hidden = true;
+
+  // 유형별 검출률 [유형, 실제, 유형 맞힘] — report_numbers.py [2]
+  hbars($("typeRates"), [["미충전", 469, 240], ["기공", 233, 144], ["박리", 198, 75], ["얼룩", 100, 69], ["변형", 106, 26], ["기타", 76, 10]].map(([nm, a, h]) => {
+    const r = h / a * 100; return { label: nm, value: r, text: `${r.toFixed(0)}%`, color: r >= 50 ? "var(--green)" : r >= 30 ? "var(--amber)" : "var(--red)" }; }), 100);
+
+  // 주의 조건 — train 비율(링)과 지금까지 생산된 해당 샷 수
+  const TRAIN = { blow: [23.4, "제품 2 · 냉각수 온도 ≤ 26.4°C"], stain: [9.7, "제품 2 · 냉각수 압력 상위 1/3"], deform: [25.9, "제품 1 · Spray 1.0 · 덥고 용탕 낮고 분사 짧음"] };
+  const renderPills = all => {
+    $("pills").innerHTML = CONDS.map((c, j) => `<div class="pill ${j ? "soft" : "dark"}"><div class="ring" id="rg${j}"></div>
+      <div class="tx"><b>${c.name} 주의</b><span>${TRAIN[c.key][1]}</span></div><div class="vs"><b>${all.filter(c.test).length}</b>누적 해당</div></div>`).join("");
+    CONDS.forEach((c, j) => ring($(`rg${j}`), TRAIN[c.key][0], j ? "var(--track)" : "rgba(255,255,255,.14)"));
+  };
+  renderPills([]);
+
+  // ── 시작 ──
+  if (!auto) $("hint").textContent = "새로고침하면 다음 24샷이 생산됩니다";
+  startBatch();
+  if (at0) { for (let x = 0; x < at0 && advance(16); x += 16); stop = true; }
+  else if (reduce) skip(); else run();
+})();
+</script>
+</body>
+</html>

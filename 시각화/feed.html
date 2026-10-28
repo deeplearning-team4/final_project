@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* 전환: 작업 영역 내용을 잠깐 숨김(monitor.js 가 글꼴 준비 뒤 풂, 안 오면 1.5초 뒤 스스로 풂) · view transition 은 http(s) 에서만(file:// 에선 콘솔 에러가 나서 끔) */document.documentElement.classList.add("boot");setTimeout(function(){document.documentElement.classList.remove("boot")},1500);if(location.protocol!=="file:"){var s=document.createElement("style");s.textContent="@media not (prefers-reduced-motion:reduce){@view-transition{navigation:auto}}";document.head.appendChild(s)}</script>
+<title>입력 기록 · 불량예측 모니터링</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="monitor.css">
+<script src="feed_data.js"></script>
+<script src="monitor.js"></script>
+</head>
+<body data-page="feed">
+<div class="frame">
+  <aside class="side"></aside><script>MON.side()</script>
+
+  <main class="work">
+    <div class="top"><div class="crumb"><a href="index.html">대시보드</a> › 입력 기록</div><h1>입력 기록</h1>
+      <span class="meta">대시보드가 24샷을 생산할 때마다 쌓입니다</span><button class="btn" id="reset">처음부터 다시</button></div>
+
+    <div class="grid g4">
+      <section class="card kpi"><div class="l">누적 수신</div><div class="v" id="n1">0<small>샷</small></div><div class="d" id="n1d"></div></section>
+      <section class="card kpi"><div class="l">경보</div><div class="v" id="n2">0<small>건</small></div><div class="d" id="n2d"></div></section>
+      <section class="card kpi"><div class="l">주의 조건 해당</div><div class="v" id="n3">0<small>샷</small></div><div class="d">기공 · 얼룩 · 변형 조건 중 하나 이상</div></section>
+      <section class="card kpi"><div class="l">마지막 수신</div><div class="v" id="n4">-</div><div class="d" id="n4d"></div></section>
+    </div>
+
+    <div class="grid g21">
+      <section class="card">
+        <div class="ch"><div><h2>샷 목록</h2><div class="sub">최근 묶음이 위 · test 샷 shot_id 순 재생 · 판정 = 최종 모델 KNN 예측(public 0.5890 제출과 같은 예측)</div></div>
+          <div class="seg" id="filter"><button class="on" data-f="all">전체</button><button data-f="alarm">경보만</button><button data-f="cond">주의 조건</button></div></div>
+        <div class="tw"><table class="t"><thead><tr><th>shot</th><th>제품</th><th>용탕로 °C</th><th>냉각수 °C</th><th>냉각수 압력</th><th>주조 압력</th><th>사이클 s</th><th>공장 °C</th><th>분사 s</th><th class="l">판정</th></tr></thead>
+          <tbody id="rows"></tbody></table></div>
+        <div class="note" id="empty" hidden style="padding:16px 0">조건에 맞는 샷이 아직 없습니다.</div>
+      </section>
+
+      <div class="grid" style="align-content:start">
+        <section class="card"><h2>누적 판정 분포</h2><div class="sub">유형별 건수 · 비율</div><div class="hb" id="mix" style="margin-top:12px"></div></section>
+        <section class="card"><h2>묶음별 경보</h2><div class="sub">최근 12묶음 · 24샷당 경보 건수</div><div class="hb" style="--lw:84px" id="batches" style="margin-top:12px"></div></section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const { $, fmt, hms, TYPES, condsOf, state, reset, batchShots, hbars, predChip, condChips } = MON;
+  const hist = state().hist, batches = hist.map(b => ({ b, s: batchShots(b) })), all = batches.flatMap(x => x.s);
+  const alarm = all.filter(s => s.pred).length, cond = all.filter(s => condsOf(s).length).length;
+
+  $("n1").innerHTML = `${fmt(all.length)}<small>샷</small>`; $("n1d").textContent = `${hist.length}묶음`;
+  $("n2").innerHTML = `${fmt(alarm)}<small>건</small>`; $("n2d").innerHTML = all.length ? `<b class="or">${(alarm / all.length * 100).toFixed(1)}%</b> · 불량으로 판정` : "";
+  $("n3").innerHTML = `${fmt(cond)}<small>샷</small>`;
+  if (hist.length) { const l = hist[hist.length - 1]; $("n4").textContent = hms(l.t); $("n4d").textContent = `shot ${batches.at(-1).s[0].id}부터 ${l.n}샷`; }
+
+  const cnt = TYPES.map((_, j) => all.filter(s => s.pred === j).length);
+  hbars($("mix"), TYPES.map((t, j) => ({ label: t, value: cnt[j], text: `${cnt[j]} · ${all.length ? (cnt[j] / all.length * 100).toFixed(1) : 0}%`, color: j ? "var(--orange)" : "var(--green)" })));
+  hbars($("batches"), batches.slice(-12).reverse().map(({ b, s }) => { const a = s.filter(x => x.pred).length;
+    return { label: hms(b.t), sub: `shot ${s[0].id}~`, value: a, text: `${a}건`, color: "var(--orange)" }; }), 24);
+
+  let f = "all";
+  const render = () => {
+    const keep = s => f === "all" || (f === "alarm" ? s.pred : condsOf(s).length);
+    let h = "";
+    batches.slice().reverse().forEach(({ b, s }) => { const rows = s.filter(keep); if (!rows.length) return;
+      h += `<tr class="batch"><td colspan="10">${hms(b.t)} 수신 · ${b.n}샷 중 ${rows.length}샷</td></tr>` + rows.map(x =>
+        `<tr><td>${x.id}</td><td>${x.prod}</td><td>${x.melt.toFixed(1)}</td><td>${x.coolT.toFixed(1)}</td><td>${x.coolP.toFixed(2)}</td><td>${fmt(x.cast)}</td><td>${x.cycle.toFixed(1)}</td><td>${x.fac.toFixed(1)}</td><td>${x.spray.toFixed(1)}</td><td class="l">${predChip(x.pred)} ${condChips(x)}</td></tr>`).join(""); });
+    $("rows").innerHTML = h; $("empty").hidden = !!h;
+  };
+  $("filter").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; f = b.dataset.f;
+    [...$("filter").children].forEach(x => x.classList.toggle("on", x === b)); render(); });
+  render();
+
+  // 초기화는 두 번 눌러야 한다
+  let armed = false;
+  $("reset").addEventListener("click", () => {
+    if (!armed) { armed = true; $("reset").textContent = "한 번 더 누르면 기록 삭제"; setTimeout(() => { armed = false; $("reset").textContent = "처음부터 다시"; }, 3000); return; }
+    reset(); location.href = "index.html";
+  });
+})();
+</script>
+</body>
+</html>

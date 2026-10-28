@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* 전환: 작업 영역 내용을 잠깐 숨김(monitor.js 가 글꼴 준비 뒤 풂, 안 오면 1.5초 뒤 스스로 풂) · view transition 은 http(s) 에서만(file:// 에선 콘솔 에러가 나서 끔) */document.documentElement.classList.add("boot");setTimeout(function(){document.documentElement.classList.remove("boot")},1500);if(location.protocol!=="file:"){var s=document.createElement("style");s.textContent="@media not (prefers-reduced-motion:reduce){@view-transition{navigation:auto}}";document.head.appendChild(s)}</script>
+<title>주의 조건 · 불량예측 모니터링</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="monitor.css">
+<style>
+.cond{display:flex;flex-direction:column;gap:12px}
+.cond.dark{background:var(--frame);color:#fff} .cond.dark .sub,.cond.dark .vs span{color:var(--frame-fg2)}
+.cond .hd{display:flex;align-items:center;gap:14px}
+.cond .vs{margin-left:auto;text-align:right} .cond .vs b{display:block;font-size:24px;color:var(--orange);line-height:1.2} .cond .vs span{font-size:12px;color:var(--fg3)}
+.cond dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.cond dt{color:var(--fg3)} .cond.dark dt{color:var(--frame-fg2)} .cond dd{margin:0}
+.hits{display:flex;flex-wrap:wrap;gap:6px}
+.hits span{font-size:12px;padding:2px 8px;border-radius:6px;background:var(--work)} .cond.dark .hits span{background:var(--frame2)}
+.hits span.a{background:var(--orange);color:#fff}
+.tl{display:grid;grid-template-columns:minmax(120px,1.3fr) repeat(4,minmax(70px,1fr));gap:6px 10px;font-size:12.5px;min-width:520px}
+.tl .h{font-size:11.5px;color:var(--fg3);font-weight:600}
+.tl .c{position:relative;background:var(--work);border-radius:6px;padding:4px 8px;overflow:hidden}
+.tl .c i{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--orange) 35%,transparent)}
+.tl .c i.s{background:color-mix(in srgb,var(--frame) 25%,transparent)}
+.tl .c span{position:relative}
+.trial{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.trial div{background:var(--work);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--fg3)} .trial b{display:block;font-size:14px;color:var(--fg)}
+.trial>span{color:var(--fg3);font-weight:700}
+</style>
+<script src="feed_data.js"></script>
+<script src="monitor.js"></script>
+</head>
+<body data-page="conditions">
+<div class="frame">
+  <aside class="side"></aside><script>MON.side()</script>
+
+  <main class="work">
+    <div class="top"><div class="crumb"><a href="index.html">대시보드</a> › 주의 조건</div><h1>주의 조건</h1>
+      <span class="meta">train 직접 집계 · 모델 예측 아님</span></div>
+
+    <div class="grid g3" id="conds"></div>
+
+    <div class="grid g2">
+      <section class="card">
+        <h2>변형: 조건을 하나씩 겹치면</h2><div class="sub">제품 1 · Spray_1_Time 1.0 구간 · 변형 비율</div>
+        <div class="hb" style="--lw:150px" id="deform" style="margin-top:12px"></div>
+        <p class="note" style="margin-top:10px">기준값은 데이터를 보고 고른 값이라 다른 기간에서도 같은지 확인이 필요합니다. 건조도 중앙값도 변형 12.5, 기타 11.9로 정상 7.9보다 높았습니다.</p>
+      </section>
+      <section class="card">
+        <h2>같은 시기 안에서 비교</h2><div class="sub">빨강 = 조건 해당</div>
+        <div class="hb" style="--lw:160px" id="within" style="margin-top:12px"></div>
+        <p class="note" style="margin-top:10px">같은 시기 안에서도 차이는 남아 관련은 있어 보입니다. 함께 바뀐 다른 조건 때문일 수도 있어 원인이라고 말하지 않습니다.</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>조건과 생산 시기가 겹칩니다</h2><div class="sub">제품 2 생산 순서를 4구간(각 581샷)으로 나눔</div>
+      <div class="tw" style="margin-top:12px"><div class="tl" id="timeline"></div></div>
+      <p class="p" style="margin-top:12px">냉각수 온도가 낮은 샷은 앞 절반에만 있고 기공도 그 시기(2/4)에 가장 많았습니다. 그 시기에는 원료 · 금형 상태 · 작업자 같은 다른 조건도 달랐을 수 있어 냉각수 때문인지 시기 때문인지 가를 수 없습니다.</p>
+    </section>
+
+    <section class="card">
+      <h2>확인 계획: 한 조건만 바꾼 시험 생산</h2><div class="sub">냉각수 온도 말고는 모두 같게 둡니다</div>
+      <div class="trial" style="margin-top:12px">
+        <div>같은 날 · 같은 금형 · 같은 설정<b>A조 냉각수 26°C</b></div><span>vs</span>
+        <div>같은 날 · 같은 금형 · 같은 설정<b>B조 냉각수 27°C</b></div><span>→</span>
+        <div>비교<b>기공 비율</b></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  const { $, fmt, TYPES, CONDS, state, batchShots, hbars, ring } = MON;
+  const all = state().hist.flatMap(batchShots);
+  // [train 비율, 비교 비율, 비교 설명, 조건 설명, 샷 수]
+  const INFO = {
+    blow: [23.4, 6.2, "26.4°C 초과 1,812샷", "제품 2 · 냉각수 온도 ≤ 26.4°C", 512],
+    stain: [9.7, 0.0, "하위 1/3 852샷", "제품 2 · 냉각수 압력 상위 1/3 (≥ 2.74)", 762],
+    deform: [25.9, 10.2, "기간 전체 988샷", "제품 1 · Spray_1_Time 1.0 · 공장 > 34.7°C · 용탕로 ≤ 700°C · 분사 ≤ 8.0초", 197],
+  };
+  $("conds").innerHTML = CONDS.map((c, j) => { const [r, base, bl, desc, n] = INFO[c.key], hit = all.filter(c.test), al = hit.filter(s => s.pred);
+    return `<section class="card cond ${j ? "" : "dark"}">
+      <div class="hd"><div class="ring" id="rg${j}"></div><div><h2>${c.name} 주의</h2><div class="sub">train ${fmt(n)}샷</div></div>
+        <div class="vs"><b>${r.toFixed(1)}%</b><span>비교 ${base.toFixed(1)}%</span></div></div>
+      <dl><dt>조건</dt><dd>${desc}</dd><dt>비교</dt><dd>${bl}</dd>
+        <dt>들어온 샷</dt><dd><b>${hit.length}</b>샷 해당 · 그중 경보 ${al.length}건</dd></dl>
+      <div class="hits">${hit.slice(-12).reverse().map(s => `<span class="${s.pred ? "a" : ""}" title="${TYPES[s.pred]}">#${s.id}</span>`).join("") || '<span>아직 없음</span>'}</div>
+    </section>`; }).join("");
+  CONDS.forEach((c, j) => ring($(`rg${j}`), INFO[c.key][0], j ? "var(--track)" : "rgba(255,255,255,.14)"));
+
+  hbars($("deform"), [["기간 전체", 10.2, 988], ["+ 공장 온도 > 34.7°C", 15.7, 536], ["+ 용탕로 온도 ≤ 700°C", 21.6, 268],
+    ["+ 분사 시간 ≤ 8.0초", 25.9, 197], ["공장 온도 ≤ 32.3°C", 0.0, 217]].map(([l, v, n]) =>
+    ({ label: l, sub: `${n}샷`, value: v, text: `${v.toFixed(1)}%`, color: v > 25 ? "var(--red)" : "var(--orange)" })), 30);
+  hbars($("within"), [["기공 · 1/4 냉각수 낮음", 14.5, 282, 1], ["기공 · 1/4 냉각수 높음", 1.0, 299], ["기공 · 2/4 냉각수 낮음", 34.3, 230, 1], ["기공 · 2/4 냉각수 높음", 8.3, 351],
+    ["얼룩 · 3/4 압력 높음", 10.7, 187, 1], ["얼룩 · 3/4 압력 낮음", 0.0, 291]].map(([l, v, n, b]) =>
+    ({ label: l, sub: `${n}샷`, value: v, text: `${v.toFixed(1)}%`, color: b ? "var(--red)" : "var(--fg3)" })), 40);
+
+  const TL = [{ lab: "냉각수 온도 ≤ 26.4°C 샷", v: [282, 230, 0, 0], n: 1 }, { lab: "기공 비율", v: [7.6, 18.6, 5.5, 8.4], max: 20 },
+              { lab: "냉각수 압력 하위 1/3 샷", v: [0, 0, 291, 561], n: 1, s: 1 }, { lab: "얼룩 비율", v: [0.0, 12.9, 4.0, 0.0], max: 20, s: 1 }];
+  $("timeline").innerHTML = `<div class="h"></div>${["1/4 (초반)", "2/4", "3/4", "4/4 (후반)"].map(q => `<div class="h">${q}</div>`).join("")}` +
+    TL.map(r => `<div>${r.lab}</div>` + r.v.map(v => { const w = r.n ? v / 581 * 100 : v / r.max * 100;
+      return `<div class="c">${v ? `<i class="${r.s ? "s" : ""}" style="width:${Math.min(100, w)}%"></i>` : ""}<span>${r.n ? (v ? `${v}샷` : "없음") : `${v.toFixed(1)}%`}</span></div>`; }).join("")).join("");
+})();
+</script>
+</body>
+</html>

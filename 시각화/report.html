@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* 전환: 작업 영역 내용을 잠깐 숨김(monitor.js 가 글꼴 준비 뒤 풂, 안 오면 1.5초 뒤 스스로 풂) · view transition 은 http(s) 에서만(file:// 에선 콘솔 에러가 나서 끔) */document.documentElement.classList.add("boot");setTimeout(function(){document.documentElement.classList.remove("boot")},1500);if(location.protocol!=="file:"){var s=document.createElement("style");s.textContent="@media not (prefers-reduced-motion:reduce){@view-transition{navigation:auto}}";document.head.appendChild(s)}</script>
+<title>생산 리포트 · 불량예측 모니터링</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="monitor.css">
+<style>
+/* 제작 중 화면 */
+.making{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(10,40,34,.55);backdrop-filter:blur(3px);padding:16px;transition:opacity .35s}
+.making.out{opacity:0;pointer-events:none}
+.mk{background:var(--card);border-radius:16px;padding:24px 26px;width:min(420px,100%);box-shadow:0 30px 60px -20px rgba(4,30,25,.6)}
+.mk h2{margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
+.mk h2 i{width:18px;height:18px;border-radius:50%;border:3px solid var(--track);border-top-color:var(--green);animation:spin .8s linear infinite}
+.mk .sub{font-size:12.5px;color:var(--fg3);margin-top:4px}
+.mk ol{list-style:none;margin:18px 0 14px;padding:0;display:grid;gap:9px;font-size:13.5px}
+.mk li{display:flex;align-items:center;gap:10px;color:var(--fg3)}
+.mk li:before{content:"";width:16px;height:16px;border-radius:50%;border:2px solid var(--track);flex:none;box-sizing:border-box}
+.mk li.on{color:var(--fg);font-weight:600} .mk li.on:before{border-color:var(--green);border-top-color:transparent;animation:spin .8s linear infinite}
+.mk li.ok{color:var(--fg2)} .mk li.ok:before{background:var(--green);border-color:var(--green)}
+.mk li span{margin-left:auto;font-size:12px;color:var(--fg3);font-weight:400}
+.mk .bar{height:6px;border-radius:3px;background:var(--track);overflow:hidden} .mk .bar i{display:block;height:100%;width:0;background:var(--green);transition:width .3s}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 리포트 본문 */
+.doc{display:flex;flex-direction:column;gap:14px}
+.lead{background:var(--frame);color:#fff;border-radius:14px;padding:18px 20px}
+.lead .k{font-size:12px;color:var(--frame-fg2)}
+.lead p{margin:6px 0 0;font-size:15px;line-height:1.7;max-width:80ch}
+.lead p b{color:#9BE3BB}
+.trend{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px;border-bottom:1px solid var(--line)}
+.trend div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;min-width:0;height:100%}
+.trend i{display:block;width:100%;max-width:26px;border-radius:3px 3px 0 0;background:var(--orange)}
+.trend span{font-size:10.5px;color:var(--fg3)}
+.trend-x{display:flex;gap:4px;font-size:10.5px;color:var(--fg3);margin-top:4px} .trend-x span{flex:1;text-align:center;min-width:0;overflow:hidden}
+.ft{font-size:12px;color:var(--fg3);line-height:1.7}
+.ft li{margin-bottom:4px}
+@media print{body{background:#fff;padding:0}.frame{background:none;box-shadow:none;display:block;padding:0}.side,.making,.noprint{display:none!important}.work{background:#fff}.card,.lead{break-inside:avoid}}
+@media (prefers-reduced-motion:reduce){.mk h2 i,.mk li.on:before{animation:none}}
+</style>
+<script src="feed_data.js"></script>
+<script src="monitor.js"></script>
+</head>
+<body data-page="report">
+<div class="frame">
+  <aside class="side"></aside><script>MON.side()</script>
+
+  <main class="work">
+    <div class="top"><div class="crumb"><a href="index.html">대시보드</a> › 생산 리포트</div><h1>생산 리포트</h1>
+      <span class="meta" id="made"></span>
+      <span class="noprint" style="margin-left:auto;display:flex;gap:8px"><button class="btn-line" onclick="print()">인쇄 · PDF</button><a class="btn" href="index.html" style="margin-left:0">대시보드로</a></span></div>
+    <div class="doc" id="doc" hidden></div>
+  </main>
+</div>
+
+<div class="making" id="making">
+  <div class="mk">
+    <h2><i></i>리포트 제작 중…</h2><div class="sub" id="mkSub">지금까지 수집된 데이터만 사용합니다</div>
+    <ol id="mkSteps">
+      <li>수집 데이터 불러오기<span></span></li>
+      <li>판정 결과 집계<span></span></li>
+      <li>공정값 요약<span></span></li>
+      <li>주의 조건 확인<span></span></li>
+      <li>리포트 작성<span></span></li>
+    </ol>
+    <div class="bar"><i id="mkBar"></i></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const { $, fmt, hms, TYPES, CONDS, condsOf, state, collected, hbars, predChip, condChips } = MON;
+  const q = new URLSearchParams(location.search), cut = q.has("cut") ? +q.get("cut") : null;
+  const hist = state().hist, all = collected(cut), made = new Date();
+  const N = all.length, al = all.filter(s => s.pred), A = al.length;
+  const pct = (a, b) => b ? (a / b * 100).toFixed(1) : "0.0";
+  const day = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+
+  // ── 집계 ──
+  const cnt = TYPES.map((_, j) => all.filter(s => s.pred === j).length);
+  const top = cnt.slice(1).map((v, j) => [TYPES[j + 1], v]).sort((a, b) => b[1] - a[1]);
+  const byProd = [1, 2].map(p => { const s = all.filter(x => x.prod === p); return { p, n: s.length, a: s.filter(x => x.pred).length }; });
+  const condHit = CONDS.map(c => { const s = all.filter(c.test); return { c, n: s.length, a: s.filter(x => x.pred).length }; });
+  const anyCond = all.filter(s => condsOf(s).length).length;
+  // 묶음별 (마지막 묶음은 기록된 만큼)
+  let off = 0; const batches = hist.map((b, i) => { const n = i === hist.length - 1 && cut != null ? Math.min(cut, b.n) : b.n; const s = all.slice(off, off + n); off += n; return { t: b.t, s }; }).filter(b => b.s.length);
+  const F = [["용탕로 온도", "melt", "°C", 1], ["냉각수 온도", "coolT", "°C", 1], ["냉각수 압력", "coolP", "", 2], ["주조 압력", "cast", "", 0], ["사이클", "cycle", "s", 1], ["공장 온도", "fac", "°C", 1], ["분사 시간", "spray", "s", 1]];
+  const mean = (s, k) => s.length ? s.reduce((a, x) => a + x[k], 0) / s.length : NaN;
+  const ok = all.filter(s => !s.pred);
+
+  // ── 제작 중 화면 ──
+  const steps = [...$("mkSteps").children], notes = [`${fmt(N)}샷`, `경보 ${A}건`, `${F.length}개 항목`, `${anyCond}샷 해당`, ""];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, gap = reduce ? 60 : 520;
+  $("mkSub").textContent = N ? `지금까지 수집된 ${fmt(N)}샷만 사용합니다` : "수집된 데이터가 없습니다";
+  let k = 0;
+  const tick = () => {
+    if (k > 0) { steps[k - 1].className = "ok"; steps[k - 1].querySelector("span").textContent = notes[k - 1]; }
+    if (k < steps.length) { steps[k].className = "on"; $("mkBar").style.width = `${(k + 1) / steps.length * 100}%`; k++; setTimeout(tick, gap); }
+    else { render(); $("doc").hidden = false; $("making").classList.add("out"); setTimeout(() => $("making").remove(), 400); }
+  };
+  tick();
+
+  // ── 리포트 본문 ──
+  function render() {
+    const t0 = batches.length ? new Date(batches[0].t) : made;
+    $("made").textContent = `${day(made)} ${hms(made)} 생성`;
+    if (!N) { $("doc").innerHTML = `<section class="card"><h2>수집된 데이터가 없습니다</h2><p class="p" style="margin-top:8px">대시보드에서 생산이 기록된 뒤 다시 만들어 주세요.</p><p style="margin-top:12px"><a class="btn-line" href="index.html">대시보드로</a></p></section>`; return; }
+
+    const lines = [
+      `${day(t0)} ${hms(t0)}부터 수집한 <b>${fmt(N)}샷</b>(shot ${all[0].id} ~ ${all[N - 1].id}, ${batches.length}묶음)을 분석했습니다.`,
+      `모델은 이 중 <b>${A}건(${pct(A, N)}%)</b>을 불량으로 판정했습니다${A ? `. 가장 많은 유형은 <b>${top[0][0]} ${top[0][1]}건</b>입니다` : ""}.`,
+      byProd.filter(x => x.n).map(x => `제품 ${x.p}은 ${fmt(x.n)}샷 중 ${x.a}건(${pct(x.a, x.n)}%)`).join(", ") + "이 경보였습니다.",
+      anyCond ? `주의 조건에 해당한 샷은 <b>${anyCond}샷</b>이고, 그중 경보는 ${all.filter(s => condsOf(s).length && s.pred).length}건입니다.` : "주의 조건에 해당한 샷은 없었습니다.",
+    ];
+
+    $("doc").innerHTML = `
+      <div class="lead"><div class="k">요약 · 자동 작성</div><p>${lines.join(" ")}</p></div>
+
+      <div class="grid g4">
+        <section class="card kpi"><div class="l">수집 샷</div><div class="v">${fmt(N)}<small>샷</small></div><div class="d">${batches.length}묶음</div></section>
+        <section class="card kpi"><div class="l">경보 (불량 판정)</div><div class="v">${A}<small>건</small></div><div class="d"><b class="or">${pct(A, N)}%</b> · train 불량 비율 22.4%</div></section>
+        <section class="card kpi"><div class="l">정상 판정</div><div class="v">${fmt(N - A)}<small>샷</small></div><div class="d">${pct(N - A, N)}%</div></section>
+        <section class="card kpi"><div class="l">주의 조건 해당</div><div class="v">${anyCond}<small>샷</small></div><div class="d">기공 · 얼룩 · 변형 조건</div></section>
+      </div>
+
+      <div class="grid g2">
+        <section class="card"><h2>판정 분포</h2><div class="sub">유형별 건수 · 비율</div><div class="hb" id="rMix" style="margin-top:12px"></div></section>
+        <section class="card"><h2>묶음별 경보 추이</h2><div class="sub">묶음마다 불량 판정 건수 · 왼쪽이 먼저</div>
+          <div class="trend" id="rTrend"></div><div class="trend-x" id="rTrendX"></div>
+          <div class="grid g2" style="margin-top:14px">${byProd.map(x => `<div class="mini" style="margin:0;grid-template-columns:1fr"><div>제품 ${x.p} · ${fmt(x.n)}샷<b>경보 ${x.a}건 · ${pct(x.a, x.n)}%</b></div></div>`).join("")}</div></section>
+      </div>
+
+      <section class="card"><h2>공정값 요약</h2><div class="sub">수집한 샷 기준 · 경보 샷과 정상 샷의 평균 비교</div>
+        <div class="tw" style="margin-top:10px"><table class="t"><thead><tr><th>항목</th><th>평균</th><th>최소</th><th>최대</th><th>정상 판정 평균</th><th>경보 평균</th><th>차이</th></tr></thead><tbody>
+        ${F.map(([nm, key, u, d]) => { const v = all.map(s => s[key]), mo = mean(ok, key), ma = mean(al, key);
+          const f = x => isNaN(x) ? "-" : (d ? x.toFixed(d) : fmt(Math.round(x)));
+          return `<tr><td>${nm}${u ? ` <span class="note">${u}</span>` : ""}</td><td>${f(mean(all, key))}</td><td>${f(Math.min(...v))}</td><td>${f(Math.max(...v))}</td><td>${f(mo)}</td><td>${f(ma)}</td><td>${isNaN(ma) || isNaN(mo) ? "-" : (ma - mo > 0 ? "+" : "") + (ma - mo).toFixed(Math.max(d, 1))}</td></tr>`; }).join("")}
+        </tbody></table></div></section>
+
+      <section class="card"><h2>주의 조건 점검</h2><div class="sub">train에서 불량이 많았던 조건에 들어온 샷</div>
+        <div class="tw" style="margin-top:10px"><table class="t"><thead><tr><th>조건</th><th class="l">기준</th><th>train 불량 비율</th><th>해당 샷</th><th>그중 경보</th></tr></thead><tbody>
+        ${condHit.map(({ c, n, a }) => `<tr><td>${c.name}</td><td class="l">${{ blow: "제품 2 · 냉각수 온도 ≤ 26.4°C", stain: "제품 2 · 냉각수 압력 ≥ 2.74", deform: "제품 1 · Spray 1.0 · 공장 > 34.7°C · 용탕로 ≤ 700°C · 분사 ≤ 8.0초" }[c.key]}</td>
+          <td>${{ blow: "23.4%", stain: "9.7%", deform: "25.9%" }[c.key]}</td><td><b>${n}</b></td><td>${a}</td></tr>`).join("")}
+        </tbody></table></div></section>
+
+      <section class="card"><div class="ch"><div><h2>경보 샷 목록</h2><div class="sub">불량으로 판정된 ${A}건 · 검사 우선 대상</div></div></div>
+        ${A ? `<div class="tw"><table class="t"><thead><tr><th>shot</th><th>제품</th><th>용탕로 °C</th><th>냉각수 °C</th><th>주조 압력</th><th>사이클 s</th><th class="l">판정</th></tr></thead><tbody>
+        ${al.map(s => `<tr><td>${s.id}</td><td>${s.prod}</td><td>${s.melt.toFixed(1)}</td><td>${s.coolT.toFixed(1)}</td><td>${fmt(s.cast)}</td><td>${s.cycle.toFixed(1)}</td><td class="l">${predChip(s.pred)} ${condChips(s)}</td></tr>`).join("")}
+        </tbody></table></div>` : `<p class="p">경보 샷이 없습니다.</p>`}</section>
+
+      <section class="card"><h2>읽을 때 주의할 점</h2>
+        <ol class="ft" style="margin:10px 0 0;padding-left:18px">
+          <li>판정은 모델 예측이며 실제 불량 여부는 아닙니다. 수집한 샷은 test 데이터를 shot_id 순으로 재생한 것이라 정답이 없습니다.</li>
+          <li>처음 보는 시기에서 모델은 실제 불량 231건 중 45건(19.5%)만 잡았고, 경보 적중률은 22.6%였습니다(시간순 검증). 경보가 없다고 불량이 없다는 뜻이 아닙니다.</li>
+          <li>주의 조건은 train에서 관찰한 관련성이며 원인은 아닙니다. 시험 생산으로 확인할 예정입니다.</li>
+          <li>공정값 평균 차이는 이번 수집분의 기술 통계입니다. 샷 수가 적으면 흔들림이 큽니다.</li>
+        </ol></section>`;
+
+    hbars($("rMix"), TYPES.map((t, j) => ({ label: t, value: cnt[j], text: `${cnt[j]} · ${pct(cnt[j], N)}%`, color: j ? "var(--orange)" : "var(--green)" })));
+    const B = batches.slice(-24), m = Math.max(1, ...B.map(b => b.s.filter(x => x.pred).length));
+    $("rTrend").innerHTML = B.map(b => { const a = b.s.filter(x => x.pred).length; return `<div><span>${a}</span><i style="height:${Math.max(2, a / m * 85)}%"></i></div>`; }).join("");
+    $("rTrendX").innerHTML = B.map(b => `<span>${hms(b.t).slice(0, 5)}</span>`).join("");
+  }
+})();
+</script>
+</body>
+</html>
