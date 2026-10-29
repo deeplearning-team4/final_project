@@ -170,7 +170,7 @@ td.n{font-variant-numeric:tabular-nums}
 
 <!-- 0 표지 -->
 <section class="slide cover" data-notes="발표 한 줄: 샷마다 남는 공정 기록으로, 금형을 열기 전에 불량을 미리 알 수 있는지 확인했습니다. 오른쪽은 결과 페이지의 공정 시뮬레이션으로, test 샷을 실제 기록 값 그대로 재생하고 판정은 최종 모델 KNN의 예측입니다.">
-  <div class="top"><span><b>3조</b> · 최종 발표</span><span class="tr"><span>2026. 10. 30</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="top"><span><b>3조</b> · 최종 발표</span><span class="tr"><span>2026. 10. 29</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
   <div class="cv-wrap">
     <div class="cv-text">
       <div class="bar-acc in" style="--i:0"></div>
@@ -766,6 +766,51 @@ td.n{font-variant-numeric:tabular-nums}
       </div>
     </div>
   </div>
+</section>
+
+<!-- 10d 기대 효과 -->
+<section class="slide" data-sec="10" data-notes="효과를 세 단계로 나눠 말씀드립니다. 처음 보는 시기 기준으로는 가장 싼 경보 기준도 하루 1,033으로, 전수 검사 781보다 비쌉니다. 그래서 지금 검사비를 줄인다고는 말할 수 없습니다. 놓침 1건 비용이 헛경보의 3.6배 이하이거나, 과거와 같은 조건이 반복되는 샷이 많다면 모델이 쓸모가 있습니다. 가장 기대되는 건 공정 조건 쪽입니다. 냉각수 온도를 26.4도 넘게 관리했을 때 기공 비율이 6.2%가 된다면 512샷 기준 약 120건이 32건으로 줄어드는 계산입니다. 다만 관련성이라 통제 시험으로 확인해야 합니다.">
+  <div class="top"><span><b>3조</b> · 다이캐스팅 불량유형 예측</span><span class="tr"><span>10 활용 방안 · 개선 방향</span><img class="logo" src="posco_logo.png" alt="" style="display:none" onload="this.style.display='block'"></span></div>
+  <div class="eyebrow in"><span>10</span>기대 효과</div>
+  <h2 class="in">검사비는 아직 못 줄인다 — <em>효과가 기대되는 건 공정 조건 쪽</em></h2>
+  <div class="body" style="gap:26px">
+    <div class="card in" style="flex:1;display:flex;flex-direction:column;gap:14px">
+      <span class="tag mid2" style="font-size:20px;align-self:flex-start">지금 확인된 것</span>
+      <div class="lbl" style="margin:4px 0 0">검사비 절감 · 처음 보는 시기, 하루 1,000샷</div>
+      <div style="display:grid;grid-template-columns:210px 1fr 80px;gap:10px 14px;align-items:center;font-size:23px">
+        <span>가장 싼 경보 기준<br><span class="xs">배율 0.15</span></span><div class="bar" style="--h:36px"><i style="--w:100%;--c:var(--gray)"></i></div><b style="text-align:right">1,033</b>
+        <span><b class="acc">전수 검사</b></span><div class="bar" style="--h:36px"><i style="--w:75.6%"></i></div><b class="acc" style="text-align:right">781</b>
+      </div>
+      <div class="t" style="font-size:25px;margin-top:auto"><b>절감 없음</b> — 모델 판정이 전수 검사보다 비싸다</div>
+      <div class="xs">비용 = 놓침 × 10 + 헛경보 × 1 (재검사 1건 = 1, 가정)</div>
+    </div>
+    <div class="card in" style="flex:1;display:flex;flex-direction:column;gap:18px">
+      <span class="tag" style="font-size:20px;align-self:flex-start">조건이 맞으면</span>
+      <div>
+        <div class="lbl" style="margin:0 0 6px">현장 단가가 이렇다면</div>
+        <div class="t" style="font-size:25px">놓침 1건 비용이 헛경보의 <b class="acc">약 3.6배 이하</b>면<br>모델 판정이 전수 검사보다 싸다</div>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:16px">
+        <div class="lbl" style="margin:0 0 6px">과거와 같은 조건이 반복되면</div>
+        <div class="t" style="font-size:25px">경보 중 실제 불량 <b class="acc">153건 중 126건 (82%)</b></div>
+        <div class="s">평소 불량률 22.5% · 무작위로 나눈 조건 → 「먼저 볼 샷」 표시로 쓸모</div>
+      </div>
+    </div>
+    <div class="card in" style="flex:1;display:flex;flex-direction:column;gap:18px;border:3px solid var(--acc)">
+      <span class="tag" style="font-size:20px;align-self:flex-start;background:var(--acc);color:#fff">시험으로 확인할 것</span>
+      <div>
+        <div class="lbl" style="margin:0 0 6px">Blow_Hole (기공) · 냉각수 26.4°C 넘게 관리하면</div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span class="big" style="font-size:56px">120</span><span class="mid">→</span><span class="big acc" style="font-size:56px">32건</span></div>
+        <div class="s">512샷 기준, 23.4% → 6.2%를 적용한 <b>단순 계산 (약 −88건)</b></div>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:16px">
+        <div class="lbl" style="margin:0 0 6px">Deformation (변형) · 제품 1</div>
+        <div class="t" style="font-size:24px">덥고 · 용탕 낮고 · 분사 짧을 때 <b class="acc">25.9%</b> vs 공장 32.3°C 이하 <b>0%</b></div>
+      </div>
+      <div class="xs" style="margin-top:auto">관련성이지 원인 확인이 아님 → 한 조건만 바꾼 통제 시험 생산으로 확인</div>
+    </div>
+  </div>
+  <div class="foot in"><b style="color:var(--ink)">다음 단계</b> &nbsp;몇 주 시범 운영으로 경보 적중률을 직접 세고 · 냉각수 26°C / 27°C 통제 시험으로 기공 감소를 확인 → 효과를 실제 숫자로</div>
 </section>
 
 <!-- Q&A -->
